@@ -1,0 +1,4191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>矩阵号运营 - 讯飞绘文</title>
+  <link rel="stylesheet" href="design-tokens.css">
+  <style>
+    /* Switch & Radio Refinements */
+    .m-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 18px;
+    }
+
+    .m-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .m-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #e2e8f0;
+      transition: .2s;
+      border-radius: 18px;
+    }
+
+    .m-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    input:checked+.m-slider {
+      background-color: var(--p);
+    }
+
+    input:checked+.m-slider:before {
+      transform: translateX(18px);
+    }
+
+    .m-tabs {
+      display: flex;
+      background: var(--color-bg);
+      padding: var(--spacing-1);
+      border-radius: var(--radius-m);
+      width: fit-content;
+      margin-bottom: var(--spacing-5);
+      border: 1px solid var(--color-border);
+    }
+
+    .m-tab {
+      padding: var(--spacing-2) var(--spacing-4);
+      font: var(--font-label);
+      cursor: pointer;
+      border-radius: var(--radius-s);
+      transition: all .15s;
+      color: var(--color-text-2);
+    }
+
+    .m-tab.on {
+      background: var(--color-bg-card);
+      color: var(--color-text-1);
+      box-shadow: var(--shadow-card);
+    }
+
+    .sdt-char-hint {
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      margin-top: var(--spacing-1);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sdt-v-group {
+      display: flex;
+      gap: var(--spacing-5);
+      margin-top: var(--spacing-2);
+    }
+
+    .sdt-v-opt {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      font: var(--font-body-m);
+      cursor: pointer;
+      color: var(--color-text-2);
+    }
+
+    .sdt-v-opt input {
+      accent-color: var(--color-brand);
+    }
+
+    /* Content Grid for Step 2 (Skill 41) */
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .content-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-m);
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      transition: all .2s;
+      background: var(--color-bg-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    .content-card:hover {
+      border-color: var(--color-brand-mid);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .content-card.on {
+      border-color: var(--color-brand);
+      background: var(--color-brand-light);
+      box-shadow: 0 0 0 2px var(--color-brand);
+    }
+
+    .content-card-img {
+      height: 100px;
+      background: var(--color-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      position: relative;
+    }
+
+    .content-card-body {
+      padding: var(--spacing-3);
+    }
+
+    .content-card-title {
+      font: var(--font-title-s);
+      margin-bottom: var(--spacing-1);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 34px;
+      line-height: 1.4;
+      color: var(--color-text-1);
+    }
+
+    .content-card-date {
+      color: var(--color-text-3);
+      font: var(--font-body-s);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .content-card-check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 20px;
+      height: 20px;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-inv);
+      font-size: 12px;
+      z-index: 10;
+      font-weight: 700;
+    }
+
+    .content-card.on .content-card-check {
+      background: var(--color-brand);
+      border-color: var(--color-brand);
+    }
+
+    .import-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--color-overlay);
+      z-index: 3000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .import-overlay.show {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .import-modal {
+      width: 90%;
+      max-width: 1000px;
+      background: var(--color-bg-card);
+      border-radius: var(--radius-xl);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      max-height: 90vh;
+      box-shadow: var(--shadow-modal);
+    }
+
+    .import-head {
+      padding: var(--spacing-5) var(--spacing-6);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .import-body {
+      padding: var(--spacing-6);
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .import-foot {
+      padding: var(--spacing-4) var(--spacing-6);
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ── DIST TABLE (Step 3 Publishing) ── */
+    .dist-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-4);
+      padding: var(--spacing-3) var(--spacing-4);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-l);
+      margin-bottom: var(--spacing-4);
+    }
+
+    .dist-group-select {
+      width: 200px !important;
+    }
+
+    .dist-table-wrap {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-l);
+      overflow: hidden;
+    }
+
+    .dist-table {
+      width: 100%;
+      border-collapse: collapse;
+      font: var(--font-body-m);
+    }
+
+    .dist-table th {
+      background: var(--color-bg);
+      padding: var(--spacing-3) var(--spacing-4);
+      text-align: left;
+      font-weight: 500;
+      color: var(--color-text-2);
+      border-bottom: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+
+    .dist-table td {
+      padding: var(--spacing-4);
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: top;
+    }
+
+    .dist-row:last-child td {
+      border-bottom: none;
+    }
+
+    .dist-article {
+      display: flex;
+      gap: var(--spacing-2);
+      align-items: flex-start;
+    }
+
+    .dist-article-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-s);
+      background: var(--color-brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .dist-article-title {
+      font: var(--font-body-m);
+      font-weight: 500;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: var(--color-text-1);
+    }
+
+    .dist-article-meta {
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      margin-top: var(--spacing-1);
+    }
+
+    .dist-account-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2);
+    }
+
+    .dist-account-sel {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+    }
+
+    .dist-account-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-full);
+      background: var(--color-brand);
+      color: var(--color-text-inv);
+      font: var(--font-body-s);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .dist-account-input {
+      flex: 1;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-s);
+      padding: 5px var(--spacing-2);
+      font: var(--font-body-s);
+      background: var(--color-bg-card);
+      cursor: pointer;
+    }
+
+    .dist-account-status {
+      font: var(--font-body-s);
+      padding: 2px 6px;
+      border-radius: var(--radius-xs);
+      width: fit-content;
+    }
+
+    .dist-account-status.err {
+      color: var(--color-warning);
+      background: var(--color-warning-light);
+    }
+
+    .dist-account-status.pend {
+      color: var(--color-text-3);
+      background: var(--color-bg);
+    }
+
+    .dist-account-status.ok {
+      color: var(--color-success);
+      background: var(--color-success-light);
+    }
+
+    .dist-config-preview {
+      display: flex;
+      gap: var(--spacing-2);
+      align-items: flex-start;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: var(--radius-s);
+      transition: background .12s;
+    }
+
+    .dist-config-preview:not(.pending):hover {
+      background: var(--color-brand-light);
+    }
+
+    .dist-config-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-s);
+      background: var(--color-brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .dist-config-title {
+      font: var(--font-body-m);
+      font-weight: 500;
+      color: var(--color-text-1);
+    }
+
+    .dist-config-meta {
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      margin-top: 2px;
+    }
+
+    .dist-config-warn {
+      font: var(--font-body-s);
+      color: var(--color-warning);
+      margin-top: 2px;
+    }
+
+    .dist-action-btn {
+      font: var(--font-body-s);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-brand);
+      color: var(--color-brand);
+      background: transparent;
+      cursor: pointer;
+      transition: all .12s;
+      white-space: nowrap;
+    }
+
+    .dist-action-btn:hover {
+      background: var(--color-brand-light);
+    }
+
+    .dist-delete-btn {
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .dist-delete-btn:hover {
+      color: var(--color-danger);
+    }
+
+    /* ── CONFIG DRAWER ── */
+    .config-drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1100;
+      background: var(--color-overlay);
+      display: none;
+      backdrop-filter: blur(2px);
+    }
+
+    .config-drawer-overlay.show {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .config-drawer {
+      position: fixed;
+      top: 0;
+      right: -480px;
+      bottom: 0;
+      width: 460px;
+      background: var(--color-bg-card);
+      box-shadow: var(--shadow-modal);
+      z-index: 1101;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .config-drawer.open {
+      right: 0;
+    }
+
+    .config-drawer-head {
+      padding: var(--spacing-5) var(--spacing-6);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .config-drawer-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+    }
+
+    .config-drawer-nav button {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--color-text-2);
+      transition: all .12s;
+    }
+
+    .config-drawer-nav button:hover {
+      border-color: var(--color-brand);
+      color: var(--color-brand);
+      background: var(--color-brand-light);
+    }
+
+    .config-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--spacing-5) var(--spacing-6);
+    }
+
+    .config-drawer-foot {
+      padding: var(--spacing-4) var(--spacing-6);
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      gap: var(--spacing-3);
+      justify-content: flex-end;
+      background: var(--color-bg);
+      flex-shrink: 0;
+    }
+
+    .drawer-field-label {
+      font: var(--font-body-m);
+      font-weight: 600;
+      color: var(--color-text-2);
+      margin-bottom: var(--spacing-2);
+      margin-top: var(--spacing-4);
+    }
+
+    .drawer-field-label:first-child {
+      margin-top: 0;
+    }
+
+    .drawer-section-title {
+      font: var(--font-title-s);
+      margin: var(--spacing-5) 0 var(--spacing-3);
+      color: var(--color-text-1);
+      padding-bottom: var(--spacing-2);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .drawer-radio-group {
+      display: flex;
+      gap: var(--spacing-3);
+      flex-wrap: wrap;
+      margin-top: var(--spacing-2);
+    }
+
+    .drawer-radio-opt {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      font: var(--font-body-m);
+      cursor: pointer;
+      color: var(--color-text-2);
+    }
+
+    .drawer-radio-opt input {
+      accent-color: var(--color-brand);
+    }
+
+    .drawer-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-3) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .drawer-toggle-row:last-child {
+      border-bottom: none;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .sb {
+      width: var(--sidebar-width);
+      background: var(--color-bg-card);
+      border-right: 1px solid var(--color-border);
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sb-header {
+      padding: var(--spacing-4) var(--spacing-4) var(--spacing-3);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .sb-back {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      cursor: pointer;
+      margin-bottom: var(--spacing-3);
+      transition: color .12s;
+    }
+
+    .sb-back:hover {
+      color: var(--color-brand);
+    }
+
+    .sb-back-ic {
+      font-size: 11px;
+    }
+
+    .sb-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-3);
+    }
+
+    .sb-brand-ic {
+      width: 32px;
+      height: 32px;
+      background: var(--grad);
+      border-radius: var(--radius-l);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .sb-brand-info {}
+
+    .sb-brand-name {
+      font: var(--font-title-s);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--color-text-1);
+    }
+
+    .sb-brand-sub {
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      margin-top: 1px;
+    }
+
+    .sb-nav {
+      padding: var(--spacing-3);
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-group {
+      margin-bottom: var(--spacing-2);
+    }
+
+    .nav-group-label {
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      padding: var(--spacing-2) var(--spacing-3) var(--spacing-1);
+      letter-spacing: .04em;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .ni {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-3);
+      padding: var(--spacing-2) var(--spacing-3);
+      border-radius: var(--radius-m);
+      color: var(--color-text-2);
+      cursor: pointer;
+      margin-bottom: 1px;
+      font: var(--font-body-m);
+      transition: all .12s;
+      position: relative;
+    }
+
+    .ni:hover {
+      background: var(--color-bg);
+      color: var(--color-text-1);
+    }
+
+    .ni.on {
+      background: var(--color-brand-light);
+      color: var(--color-brand);
+      font-weight: 600;
+    }
+
+    .ni.on::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 18px;
+      background: var(--color-brand);
+      border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    }
+
+    .nic {
+      font-size: 14px;
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .nbadge {
+      margin-left: auto;
+      background: var(--color-danger);
+      color: var(--color-text-inv);
+      font: var(--font-body-s);
+      padding: 1px 5px;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+    }
+
+    .nbadge.or {
+      background: var(--color-warning);
+    }
+
+    .nbadge.gr {
+      background: var(--color-success);
+    }
+
+    .sb-footer {
+      padding: var(--spacing-3) var(--spacing-4);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .sf-account {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-3);
+      padding: var(--spacing-2) var(--spacing-3);
+      border-radius: var(--radius-m);
+      cursor: pointer;
+      transition: background .12s;
+    }
+
+    .sf-account:hover {
+      background: var(--color-bg);
+    }
+
+    .sf-av {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      background: var(--grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: var(--font-body-s);
+      font-weight: 700;
+      color: var(--color-brand);
+    }
+
+    .sf-name {
+      font: var(--font-body-m);
+      font-weight: 500;
+      flex: 1;
+      color: var(--color-text-1);
+    }
+
+    .sf-plan {
+      font: var(--font-body-s);
+      color: var(--color-brand);
+      background: var(--color-brand-light);
+      padding: 1px 6px;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: var(--color-bg-card);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--spacing-7);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .tb-l {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-3);
+    }
+
+    .tb-title {
+      font: var(--font-title-l);
+      color: var(--color-text-1);
+    }
+
+    .tb-sub {
+      font: var(--font-body-m);
+      color: var(--color-text-3);
+    }
+
+    .tb-r {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-p {
+      background: var(--color-brand);
+      color: var(--color-text-inv);
+      border: none;
+      padding: var(--spacing-btn-v) var(--spacing-4);
+      border-radius: var(--radius-s);
+      font: var(--font-label);
+      cursor: pointer;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-2);
+    }
+
+    .btn-p:hover {
+      background: var(--color-brand-hover);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .btn-p:active {
+      background: var(--color-brand-pressed);
+    }
+
+    .btn-g {
+      background: var(--color-bg-card);
+      color: var(--color-text-1);
+      border: 1px solid var(--color-border);
+      padding: var(--spacing-btn-v) var(--spacing-4);
+      border-radius: var(--radius-s);
+      font: var(--font-label);
+      cursor: pointer;
+      transition: all .12s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-2);
+    }
+
+    .btn-g:hover {
+      border-color: var(--color-brand-mid);
+      color: var(--color-brand);
+      background: var(--color-brand-light);
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      padding: 24px 28px;
+    }
+
+    /* KPI */
+    .kpi {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .kc {
+      background: var(--wh);
+      border: 1px solid var(--bd);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: box-shadow .15s;
+      cursor: pointer;
+    }
+
+    .kc:hover {
+      box-shadow: 0 4px 16px rgba(124, 92, 252, .08);
+      border-color: var(--pm);
+    }
+
+    .ki {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .ki.pp {
+      background: var(--pl)
+    }
+
+    .ki.gr {
+      background: var(--grl)
+    }
+
+    .ki.or {
+      background: var(--orl)
+    }
+
+    .ki.rd {
+      background: var(--rdl)
+    }
+
+    .kv {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .kv .s {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--txm);
+      margin-left: 2px;
+    }
+
+    .kl {
+      font-size: 12px;
+      color: var(--txm);
+      margin-top: 3px;
+    }
+
+    /* GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 288px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .lc,
+    .rc {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--wh);
+      border: 1px solid var(--bd);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .ch {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ct {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .cl {
+      font-size: 12.5px;
+      color: var(--p);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .cl:hover {
+      text-decoration: underline;
+    }
+
+    /* SKILL GRID */
+    .sg {
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .sc {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-l);
+      padding: var(--spacing-4) var(--spacing-3);
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+      background: var(--color-bg-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    .sc:hover {
+      border-color: var(--color-brand-mid);
+      background: var(--color-brand-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .sc.add {
+      border-style: dashed;
+      opacity: .6;
+      box-shadow: none;
+    }
+
+    .sc.add:hover {
+      opacity: 1;
+      border-style: solid;
+    }
+
+    .se {
+      font-size: 24px;
+      margin-bottom: var(--spacing-2);
+    }
+
+    .sn {
+      font: var(--font-title-s);
+      margin-bottom: var(--spacing-1);
+      line-height: 1.3;
+      color: var(--color-text-1);
+    }
+
+    .sd {
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      line-height: 1.4;
+    }
+
+    /* TASK FILTERS */
+    .tf {
+      padding: var(--spacing-3) var(--spacing-4);
+      display: flex;
+      gap: var(--spacing-2);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .fp {
+      padding: var(--spacing-1) var(--spacing-3);
+      border-radius: var(--radius-full);
+      font: var(--font-body-m);
+      cursor: pointer;
+      color: var(--color-text-2);
+      border: 1px solid transparent;
+      transition: all .12s;
+    }
+
+    .fp:hover {
+      color: var(--color-brand);
+      background: var(--color-brand-light);
+    }
+
+    .fp.on {
+      background: var(--color-brand-light);
+      color: var(--color-brand);
+      font-weight: 600;
+      border-color: var(--color-brand-mid);
+    }
+
+    /* TASK ITEMS */
+    .ti {
+      padding: var(--spacing-4) var(--spacing-5);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-4);
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .ti:last-child {
+      border-bottom: none;
+    }
+
+    .ti:hover {
+      background: var(--color-bg);
+    }
+
+    .td {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+
+    .td.run {
+      background: var(--color-brand);
+      box-shadow: 0 0 0 3px var(--color-brand-light);
+    }
+
+    .td.rev {
+      background: var(--color-warning);
+      box-shadow: 0 0 0 3px var(--color-warning-light);
+    }
+
+    .td.don {
+      background: var(--color-success);
+      box-shadow: 0 0 0 3px var(--color-success-light);
+    }
+
+    .tinfo {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tn {
+      font: var(--font-body-l);
+      font-weight: 500;
+      margin-bottom: var(--spacing-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--color-text-1);
+    }
+
+    .tm {
+      font: var(--font-body-s);
+      color: var(--color-text-3);
+      display: flex;
+      gap: var(--spacing-2);
+      align-items: center;
+    }
+
+    .tp {
+      font: var(--font-body-s);
+      padding: 1px 7px;
+      border-radius: var(--radius-xs);
+      font-weight: 500;
+    }
+
+    .xhs {
+      background: #FFEEF0;
+      color: #E1303E;
+    }
+
+    .gzh {
+      background: var(--color-success-light);
+      color: var(--color-success);
+    }
+
+    .dy {
+      background: var(--color-brand-light);
+      color: var(--color-brand);
+    }
+
+    .sph {
+      background: var(--color-warning-light);
+      color: var(--color-warning);
+    }
+
+    .pb {
+      height: 4px;
+      background: var(--color-border);
+      border-radius: var(--radius-full);
+      margin-top: var(--spacing-2);
+      overflow: hidden;
+      width: 120px;
+    }
+
+    .pf {
+      height: 100%;
+      background: var(--color-brand);
+      border-radius: var(--radius-full);
+    }
+
+    .tbg {
+      font: var(--font-body-s);
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .br {
+      background: var(--color-brand-light);
+      color: var(--color-brand);
+    }
+
+    .bv {
+      background: var(--color-warning-light);
+      color: var(--color-warning);
+    }
+
+    .bd2 {
+      background: var(--grl);
+      color: #059669;
+    }
+
+    .tc {
+      font-size: 12px;
+      color: var(--txm);
+      flex-shrink: 0;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    .ta {
+      font-size: 12.5px;
+      color: var(--p);
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+
+    /* RIGHT COL */
+    .ai {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--bd);
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .ai:last-child {
+      border-bottom: none;
+    }
+
+    .ai:hover {
+      background: var(--bg);
+    }
+
+    .av {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--p);
+      flex-shrink: 0;
+    }
+
+    .an {
+      font-size: 12.5px;
+      font-weight: 500;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ptag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .sis {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .se2 {
+      background: var(--rdl);
+      color: var(--rd);
+    }
+
+    .sw2 {
+      background: var(--orl);
+      color: var(--or);
+    }
+
+    .ii {
+      padding: 10px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      border-bottom: 1px solid var(--bd);
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .ii:last-child {
+      border-bottom: none;
+    }
+
+    .ii:hover {
+      background: var(--bg);
+    }
+
+    .it {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .ic {
+      background: var(--tl);
+      color: var(--t);
+    }
+
+    .id {
+      background: var(--pl);
+      color: var(--p);
+    }
+
+    .iinfo {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ifrom {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 2px;
+      color: var(--tx2);
+    }
+
+    .itx {
+      font-size: 12px;
+      color: var(--txm);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ud {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--p);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .cf {
+      padding: 10px 16px;
+      text-align: center;
+      border-top: 1px solid var(--bd);
+    }
+
+    .cf a {
+      font-size: 12px;
+      color: var(--p);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .dp {
+      padding: 20px 16px;
+      text-align: center;
+      color: var(--txm);
+    }
+
+    .dp .di {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .dp p {
+      font-size: 12.5px;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .35
+      }
+    }
+
+    .run {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* ── MODAL BASE ── */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-card {
+      background: var(--wh);
+      width: 900px;
+      max-width: 95vw;
+      height: 600px;
+      max-height: 85vh;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.show .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-steps {
+      display: flex;
+      gap: 24px;
+      margin-left: 40px;
+    }
+
+    .m-step {
+      font-size: 13px;
+      color: var(--txm);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .m-step.on {
+      color: var(--p);
+      font-weight: 600;
+    }
+
+    .m-step.done {
+      color: var(--gr);
+    }
+
+    .m-step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid currentColor;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .modal-close {
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--txm);
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: var(--rd);
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafafa;
+      flex-shrink: 0;
+    }
+
+    /* STEP 1: SKILL SELECT */
+    .skill-grid-m {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .skill-card-m {
+      border: 2px solid var(--bd);
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .skill-card-m:hover {
+      border-color: var(--pm);
+      background: var(--pl);
+    }
+
+    .skill-card-m.on {
+      border-color: var(--p);
+      background: var(--pl);
+      box-shadow: 0 0 0 1px var(--p);
+    }
+
+    .skill-card-m .badge-pub {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--tl);
+      color: var(--t);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    /* STEP 2: TABLE (Reuse style from prompt) */
+    .table-container {
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .m-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .m-table th {
+      background: #f8f9fb;
+      text-align: left;
+      padding: 12px 16px;
+      color: var(--tx2);
+      font-weight: 500;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .m-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .m-input {
+      width: 100%;
+      border: 1px solid var(--bd);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .m-input:focus {
+      border-color: var(--p);
+    }
+
+    .m-table-tools {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    /* STEP 3: CONFIG */
+    .config-form {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .form-item {
+      margin-bottom: 24px;
+    }
+
+    .form-item label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .strategy-opts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .opt-card {
+      border: 1.5px solid var(--bd);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .opt-card:hover {
+      border-color: var(--pm);
+    }
+
+    .opt-card.on {
+      border-color: var(--p);
+      background: var(--pl);
+    }
+
+    .opt-card .title {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .opt-card .desc {
+      font-size: 12px;
+      color: var(--txm);
+      line-height: 1.4;
+    }
+
+    /* ── SKILL DETAIL MODAL ── */
+    .sdt-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, .45);
+      z-index: 1200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sdt-overlay.show {
+      display: flex;
+    }
+
+    .sdt-modal {
+      background: var(--wh);
+      border-radius: 20px;
+      width: 920px;
+      max-width: 96vw;
+      height: 86vh;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+      transform: translateY(18px);
+      transition: transform .22s;
+    }
+
+    .sdt-overlay.show .sdt-modal {
+      transform: translateY(0);
+    }
+
+    .sdt-head {
+      padding: 20px 28px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .sdt-body {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      gap: 0;
+    }
+
+    /* Left info pane */
+    .sdt-info {
+      width: 300px;
+      flex-shrink: 0;
+      min-height: 0;
+      border-right: 1px solid var(--bd);
+      padding: 20px 24px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .sdt-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      margin-bottom: 4px;
+    }
+
+    .sdt-skill-name {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .sdt-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .sdt-tag {
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--bd);
+      color: var(--tx2);
+    }
+
+    .sdt-tag.pub {
+      background: var(--tl);
+      color: var(--t);
+      border-color: var(--t);
+    }
+
+    .sdt-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--txm);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 8px;
+    }
+
+    .sdt-param-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .sdt-param-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    /* Right run pane */
+    .sdt-run {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 20px 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sdt-run>* {
+      flex-shrink: 0;
+    }
+
+    .sdt-run-section {
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .sdt-run-section-head {
+      background: #f8f9fb;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--tx2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sdt-run-section-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sdt-label {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--tx1);
+    }
+
+    .sdt-sublabel {
+      font-size: 11px;
+      color: var(--txm);
+      margin-bottom: 5px;
+    }
+
+    .sdt-upload {
+      border: 1.5px dashed var(--bd);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+
+    .sdt-upload:hover {
+      border-color: var(--p);
+    }
+
+    .sdt-output {
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .sdt-output.show {
+      display: block;
+    }
+
+    .sdt-output-head {
+      background: linear-gradient(135deg, var(--tl), var(--pl));
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--tx2);
+    }
+
+    .sdt-output-body {
+      padding: 16px;
+    }
+
+    .sdt-out-images {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .sdt-out-img {
+      flex: 1;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      border: 1px solid var(--bd);
+    }
+
+    .sdt-out-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .sdt-out-body {
+      font-size: 13px;
+      color: var(--tx2);
+      line-height: 1.7;
+    }
+
+    .sdt-loading {
+      text-align: center;
+      padding: 28px;
+      display: none;
+    }
+
+    .sdt-loading.show {
+      display: block;
+    }
+
+    .sdt-spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--bd);
+      border-top-color: var(--p);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .sdt-foot {
+      padding: 16px 28px;
+      border-top: 1px solid var(--bd);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── DEDICATED SIDEBAR ── -->
+  <aside class="sb">
+    <div class="sb-header">
+      <div class="sb-back">
+        <span class="sb-back-ic">←</span>
+        <span>返回讯飞绘文</span>
+      </div>
+      <div class="sb-brand">
+        <div class="sb-brand-ic">⚡</div>
+        <div class="sb-brand-info">
+          <div class="sb-brand-name">矩阵号运营</div>
+          <div class="sb-brand-sub">47 个账号 · Pro 版</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="nav-group">
+        <div class="ni on"><span class="nic">🏠</span>工作台</div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">内容生产</div>
+        <div class="ni" onclick="location.href='批量任务_全量页.html'" style="cursor:pointer"><span
+            class="nic">⚡</span>批量任务<span class="nbadge or">5</span></div>
+        <div class="ni"><span class="nic">✨</span>Skill 广场</div>
+        <div class="ni" onclick="location.href='内容库.html'" style="cursor:pointer"><span class="nic">🗂️</span>内容库<span class="nbadge gr">347</span></div>
+        <div class="ni" onclick="location.href='模板库.html'" style="cursor:pointer"><span class="nic">🗃️</span>模板库</div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">账号管理</div>
+        <div class="ni"><span class="nic">👥</span>账号列表<span class="nbadge" style="background:var(--rd)">3</span></div>
+        <div class="ni"><span class="nic">🗂️</span>分组管理</div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">互动与数据</div>
+        <div class="ni"><span class="nic">💬</span>评论与私信<span class="nbadge">12</span></div>
+        <div class="ni"><span class="nic">📈</span>数据看板</div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">设置</div>
+        <div class="ni"><span class="nic">⚙️</span>审核规则</div>
+        <div class="ni"><span class="nic">🔔</span>通知设置</div>
+      </div>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sf-account">
+        <div class="sf-av">呦</div>
+        <div class="sf-name">呦呦</div>
+        <div class="sf-plan">Pro</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <div class="topbar">
+      <div class="tb-l">
+        <span class="tb-title">工作台</span>
+        <span style="color:var(--bd);margin:0 2px">·</span>
+        <span class="tb-sub">共 47 个账号</span>
+      </div>
+      <div class="tb-r">
+        <button class="btn-p" onclick="openModal()">＋ 新建批量任务</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- KPI -->
+      <div class="kpi">
+        <div class="kc">
+          <div class="ki pp">🟢</div>
+          <div>
+            <div class="kv">44<span class="s">/ 47</span></div>
+            <div class="kl">账号在线</div>
+          </div>
+        </div>
+        <div class="kc">
+          <div class="ki gr">✍️</div>
+          <div>
+            <div class="kv" style="color:var(--gr)">128</div>
+            <div class="kl">本周已发布</div>
+          </div>
+        </div>
+        <div class="kc">
+          <div class="ki or">⏳</div>
+          <div>
+            <div class="kv" style="color:var(--or)">23</div>
+            <div class="kl">待审核内容</div>
+          </div>
+        </div>
+        <div class="kc">
+          <div class="ki rd">⚠️</div>
+          <div>
+            <div class="kv" style="color:var(--rd)">3</div>
+            <div class="kl">异常账号</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRID -->
+      <div class="grid">
+        <div class="lc">
+
+          <!-- QUICK START -->
+          <div class="card">
+            <div class="ch">
+              <span class="ct">快捷发起</span>
+              <span class="cl">浏览 Skill 广场 →</span>
+            </div>
+            <div class="sg">
+              <div class="sc" data-skill-id="1" onclick="openSkillDetail(1)" style="cursor:pointer">
+                <div class="se">📕</div>
+                <div class="sn">小红书图文模板仿写</div>
+                <div class="sd">上传品牌模板，批量生成同风格图文</div>
+              </div>
+              <div class="sc" data-skill-id="41" onclick="openSkillDetail(41)" style="cursor:pointer">
+                <div class="se">📤</div>
+                <div class="sn">发布至小红书</div>
+                <div class="sd">将单篇图文一键分发至指定小红书账号</div>
+              </div>
+              <div class="sc" data-skill-id="51" onclick="openSkillDetail(51)" style="cursor:pointer; position:relative">
+                <div style="position:absolute;top:8px;right:8px;background:var(--tl);color:var(--t);font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600">发布</div>
+                <div class="se">⚡</div>
+                <div class="sn">小红书一键模板创作+发布</div>
+                <div class="sd">生成图文并直接发布至小红书账号</div>
+              </div>
+              <div class="sc add">
+                <div class="se">✨</div>
+                <div class="sn">更多 Skill</div>
+                <div class="sd">从广场选择或自定义工作流</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TASK LIST -->
+          <div class="card">
+            <div class="ch">
+              <span class="ct">批量任务</span>
+              <span class="cl" onclick="location.href='批量任务_全量页.html'">查看全部 →</span>
+            </div>
+            <div class="tf">
+              <div class="fp on">全部</div>
+              <div class="fp">进行中 <span style="color:var(--p);font-weight:700">2</span></div>
+              <div class="fp">待审核 <span style="color:var(--or);font-weight:700">3</span></div>
+              <div class="fp">已完成</div>
+            </div>
+
+            <div class="ti">
+              <div class="td run"></div>
+              <div class="tinfo">
+                <div class="tn">3月护肤品推广系列</div>
+                <div class="tm"><span class="tp xhs">小红书</span><span>小红书模板复刻</span><span>今天 14:32</span></div>
+                <div class="pb">
+                  <div class="pf" style="width:60%"></div>
+                </div>
+              </div>
+              <div class="tc">18 / 30 篇</div>
+              <div class="tbg br">生成中</div>
+            </div>
+
+            <div class="ti">
+              <div class="td rev"></div>
+              <div class="tinfo">
+                <div class="tn">Q1 品牌故事系列</div>
+                <div class="tm"><span class="tp gzh">公众号</span><span>公众号模板复刻</span><span>今天 11:05</span></div>
+              </div>
+              <div class="tc">12 篇</div>
+              <div class="tbg bv">待审核</div>
+              <div class="ta">去审核</div>
+            </div>
+
+            <div class="ti">
+              <div class="td rev"></div>
+              <div class="tinfo">
+                <div class="tn">春季新品短视频脚本</div>
+                <div class="tm"><span class="tp dy">抖音</span><span>自定义 Skill</span><span>昨天 18:20</span></div>
+              </div>
+              <div class="tc">25 篇</div>
+              <div class="tbg bv">待审核</div>
+              <div class="ta">去审核</div>
+            </div>
+
+            <div class="ti">
+              <div class="td run"></div>
+              <div class="tinfo">
+                <div class="tn">产品测评内容批量生成</div>
+                <div class="tm"><span class="tp sph">视频号</span><span>跨平台内容转化</span><span>今天 15:10</span></div>
+                <div class="pb">
+                  <div class="pf" style="width:20%"></div>
+                </div>
+              </div>
+              <div class="tc">4 / 20 篇</div>
+              <div class="tbg br">生成中</div>
+            </div>
+
+            <div class="ti">
+              <div class="td don"></div>
+              <div class="tinfo">
+                <div class="tn">2月日常穿搭系列</div>
+                <div class="tm"><span class="tp xhs">小红书</span><span>小红书模板复刻</span><span>2月28日</span></div>
+              </div>
+              <div class="tc">40 篇</div>
+              <div class="tbg bd2">已发布</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="rc">
+          <div class="card">
+            <div class="ch">
+              <span class="ct">账号异常</span>
+              <span class="cl">查看全部 →</span>
+            </div>
+            <div class="ai">
+              <div class="av">灯</div>
+              <div class="an">小灯发芽ing</div>
+              <div class="ptag xhs">小红书</div>
+              <div class="sis se2">掉线</div>
+            </div>
+            <div class="ai">
+              <div class="av">宙</div>
+              <div class="an">诗意宇宙的心理学</div>
+              <div class="ptag xhs">小红书</div>
+              <div class="sis sw2">授权过期</div>
+            </div>
+            <div class="ai">
+              <div class="av">咖</div>
+              <div class="an">呦呦的咖啡馆</div>
+              <div class="ptag gzh">公众号</div>
+              <div class="sis se2">掉线</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="ch">
+              <span class="ct">评论与私信</span>
+              <span style="font-size:12px;color:var(--p);font-weight:600">12 未读</span>
+            </div>
+            <div class="ii">
+              <div class="it ic">评论</div>
+              <div class="iinfo">
+                <div class="ifrom">小灯发芽ing · 小红书</div>
+                <div class="itx">这个护肤品真的有用吗？求推荐...</div>
+              </div>
+              <div class="ud"></div>
+            </div>
+            <div class="ii">
+              <div class="it id">私信</div>
+              <div class="iinfo">
+                <div class="ifrom">紫雪长风 · 小红书</div>
+                <div class="itx">你好，想问一下合作的事情</div>
+              </div>
+              <div class="ud"></div>
+            </div>
+            <div class="ii">
+              <div class="it ic">评论</div>
+              <div class="iinfo">
+                <div class="ifrom">呦呦的咖啡馆 · 公众号</div>
+                <div class="itx">文章写得很好，请问下期更新...</div>
+              </div>
+              <div class="ud"></div>
+            </div>
+            <div class="cf"><a>进入互动管理，查看全部 12 条 →</a></div>
+          </div>
+
+          <div class="card">
+            <div class="ch"><span class="ct">数据看板</span></div>
+            <div class="dp">
+              <div class="di">📈</div>
+              <p>查看矩阵整体运营数据<br>及各账号发布表现</p>
+              <button class="btn-g" style="width:100%">进入数据看板</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── MODAL: NEW BATCH TASK ── -->
+  <div id="taskModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>新建批量任务</span>
+          <div class="modal-steps">
+            <div class="m-step on" id="stepInd1"><span class="m-step-num">1</span>选择 Skill</div>
+            <div class="m-step" id="stepInd2"><span class="m-step-num">2</span>全局设置</div>
+            <div class="m-step" id="stepInd3"><span class="m-step-num">3</span>数据表格</div>
+          </div>
+        </div>
+        <div class="modal-close" onclick="closeModal()">✕</div>
+      </div>
+
+      <div class="modal-body">
+        <!-- Step 1: Skill Selection -->
+        <div id="step1" class="step-content">
+          <div style="margin-bottom:20px;color:var(--tx2)">请选择本批内容生成的 Skill 能力：</div>
+          <div class="skill-grid-m" id="modalSkillGrid">
+            <!-- Dynamic Skills -->
+          </div>
+        </div>
+
+        <!-- Step 2: Global Config (Formerly Step 3) -->
+        <div id="step2" class="step-content" style="display:none">
+          <div class="config-form">
+            <div class="form-item">
+              <label>任务名称</label>
+              <input type="text" class="m-input" id="taskNameInput" placeholder="输入任务名称">
+            </div>
+
+            <!-- Skill 1a: 图文模板仿写 专项配置 -->
+            <div id="skill1Config" style="display:none">
+              <div
+                style="font-size:12px;font-weight:600;color:var(--p);margin-bottom:14px;display:flex;align-items:center;gap:6px">
+                <span>📕</span> 小红书图文模板仿写 · 任务设置
+              </div>
+              <div class="form-item">
+                <label>配图模板 <span style="color:var(--rd)">*</span> <span style="color:var(--txm);font-weight:400;font-size:12px">（可上传多张）</span></label>
+                <div id="batchUploadWrap1">
+                  <div
+                    style="border:1.5px dashed var(--bd);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s"
+                    onmouseenter="this.style.borderColor='var(--p)'" onmouseleave="this.style.borderColor='var(--bd)'"
+                    onclick="detectTemplateBatch(this)">
+                    <div style="font-size:22px;margin-bottom:6px">🖼️</div>
+                    <div style="font-size:13px;font-weight:600;margin-bottom:4px">上传品牌模板图文</div>
+                    <div style="font-size:12px;color:var(--txm)">支持图片组（PNG/JPG）或 ZIP 压缩包，AI 将自动解构版式与配文区域</div>
+                    <button class="btn-g" style="margin-top:12px;font-size:12px">选择文件</button>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+                  <div style="flex:1;height:1px;background:var(--bd)"></div>
+                  <span style="font-size:12px;color:var(--txm)">或</span>
+                  <div style="flex:1;height:1px;background:var(--bd)"></div>
+                </div>
+                <button class="btn-g" style="width:100%;margin-top:10px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px"
+                  onclick="openTemplatePicker('image', function(tpl){ applyImageTemplate('skill1', tpl) })">
+                  <span>🗃️</span> 从模板库选择
+                </button>
+                <div id="skill1-img-applied" style="display:none;margin-top:8px;padding:8px 12px;background:var(--pl);border-radius:8px;font-size:12px;color:var(--p);display:flex;align-items:center;gap:6px">
+                  <span>✅</span>
+                  <span id="skill1-img-applied-name"></span>
+                  <span style="margin-left:auto;cursor:pointer;color:var(--txm)" onclick="clearImageTemplate('skill1')">✕ 清除</span>
+                </div>
+              </div>
+              <div class="form-item">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <label style="margin-bottom:0">正文结构参考 <span style="color:var(--txm);font-weight:400;font-size:12px">（选填）</span></label>
+                  <button style="background:none;border:none;font-size:12px;color:var(--p);cursor:pointer;font-family:inherit;font-weight:500;padding:0"
+                    onclick="openTemplatePicker('text', function(tpl){ document.getElementById('skill1TextRef').value = tpl.content })">
+                    🗃️ 从模板库选取
+                  </button>
+                </div>
+                <textarea class="m-input" id="skill1TextRef" rows="3" placeholder="粘贴一篇参考文章，AI 将仿其段落结构、语气和风格批量生成正文…"
+                  style="resize:vertical;line-height:1.6"></textarea>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;font-size:12px;color:#0369A1;margin-top:4px">
+                <span style="flex-shrink:0;font-size:14px">🔍</span>
+                <span>当前任务默认开启<b>联网搜索</b>，AI 将自动补充参数表格中未给到的细节数据（如车型参数、产品信息等）。</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skill 41: 发布至小红书 内容选择 (Step 2) -->
+          <div id="skill41Config" style="display:none">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+              <div style="display:flex; gap:12px; align-items:center;">
+                <input class="m-input" style="width:200px; font-size:12px" placeholder="🔍 输入关键词搜索内容库...">
+                <select class="m-input" style="width:120px; font-size:12px">
+                  <option>更新时间 ↓</option>
+                  <option>创建时间</option>
+                </select>
+              </div>
+              <button class="btn-p" style="font-size:12px; padding: 8px 16px;" onclick="openImportModal()">📤
+                批量导入文章</button>
+            </div>
+
+            <div class="content-grid" id="contentLibraryGrid">
+              <!-- Mock Content Cards -->
+              <div class="content-card on" onclick="this.classList.toggle('on'); updateSelectedCount()">
+                <div class="content-card-check">✓</div>
+                <div class="content-card-img">🖼️</div>
+                <div class="content-card-body">
+                  <div class="content-card-title">如何给孩子挑选合适的学习机？这4个关键点比品牌更重要！</div>
+                  <div class="content-card-date"><span>更新于 02月03日</span> <span>👁️</span></div>
+                </div>
+              </div>
+              <div class="content-card" onclick="this.classList.toggle('on'); updateSelectedCount()">
+                <div class="content-card-check"></div>
+                <div class="content-card-img"
+                  style="background-image:url('https://picsum.photos/seed/1/200/150'); background-size:cover;"></div>
+                <div class="content-card-body">
+                  <div class="content-card-title">在书海中，遇见更好的自己✨</div>
+                  <div class="content-card-date"><span>更新于 01月21日</span> <span>👁️</span></div>
+                </div>
+              </div>
+              <div class="content-card" onclick="this.classList.toggle('on'); updateSelectedCount()">
+                <div class="content-card-check"></div>
+                <div class="content-card-img">📄</div>
+                <div class="content-card-body">
+                  <div class="content-card-title">&lt;输入发布文章标题&gt;</div>
+                  <div class="content-card-date"><span>更新于 01月13日</span> <span>👁️</span></div>
+                </div>
+              </div>
+              <div class="content-card" onclick="this.classList.toggle('on'); updateSelectedCount()">
+                <div class="content-card-check"></div>
+                <div class="content-card-img">📄</div>
+                <div class="content-card-body">
+                  <div class="content-card-title">打工人养狗指南</div>
+                  <div class="content-card-date"><span>更新于 10月09日</span> <span>👁️</span></div>
+                </div>
+              </div>
+              <div class="content-card" onclick="this.classList.toggle('on'); updateSelectedCount()">
+                <div class="content-card-check"></div>
+                <div class="content-card-img">🖼️</div>
+                <div class="content-card-body">
+                  <div class="content-card-title">反反复复</div>
+                  <div class="content-card-date"><span>更新于 01月13日</span> <span>👁️</span></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top: 16px; font-size: 13px; color: var(--tx2); text-align:right;" id="selectedCountText">
+              已选 <b style="color:var(--p)">1</b> 篇素材
+            </div>
+          </div><!-- end skill41Config -->
+
+          <!-- Skill 51: 小红书一键模板创作+发布 (Step 2) -->
+          <div id="skill51Config" style="display:none">
+            <div style="font-size:12px;font-weight:600;color:var(--p);margin-bottom:14px;display:flex;align-items:center;gap:6px">
+              <span>⚡</span> 小红书一键模板创作+发布 · 任务设置
+            </div>
+            <div class="form-item">
+              <label>配图模板 <span style="color:var(--rd)">*</span> <span style="color:var(--txm);font-weight:400;font-size:12px">（可上传多张）</span></label>
+              <div id="batchUploadWrap51">
+                <div style="border:1.5px dashed var(--bd);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s"
+                  onmouseenter="this.style.borderColor='var(--p)'" onmouseleave="this.style.borderColor='var(--bd)'"
+                  onclick="detectTemplateBatch(this)">
+                  <div style="font-size:22px;margin-bottom:6px">🖼️</div>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:4px">上传品牌模板图文</div>
+                  <div style="font-size:12px;color:var(--txm)">支持图片组（PNG/JPG）或 ZIP 压缩包</div>
+                  <button class="btn-g" style="margin-top:12px;font-size:12px">选择文件</button>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+                <div style="flex:1;height:1px;background:var(--bd)"></div>
+                <span style="font-size:12px;color:var(--txm)">或</span>
+                <div style="flex:1;height:1px;background:var(--bd)"></div>
+              </div>
+              <button class="btn-g" style="width:100%;margin-top:10px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px"
+                onclick="openTemplatePicker('image', function(tpl){ applyImageTemplate('skill51', tpl) })">
+                <span>🗃️</span> 从模板库选择
+              </button>
+              <div id="skill51-img-applied" style="display:none;margin-top:8px;padding:8px 12px;background:var(--pl);border-radius:8px;font-size:12px;color:var(--p);display:flex;align-items:center;gap:6px">
+                <span>✅</span>
+                <span id="skill51-img-applied-name"></span>
+                <span style="margin-left:auto;cursor:pointer;color:var(--txm)" onclick="clearImageTemplate('skill51')">✕ 清除</span>
+              </div>
+            </div>
+            <div class="form-item">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <label style="margin-bottom:0">正文结构参考 <span style="color:var(--txm);font-weight:400;font-size:12px">（选填）</span></label>
+                <button style="background:none;border:none;font-size:12px;color:var(--p);cursor:pointer;font-family:inherit;font-weight:500;padding:0"
+                  onclick="openTemplatePicker('text', function(tpl){ document.getElementById('skill51TextRef').value = tpl.content })">
+                  🗃️ 从模板库选取
+                </button>
+              </div>
+              <textarea class="m-input" id="skill51TextRef" rows="3" placeholder="粘贴参考文章…" style="resize:vertical;line-height:1.6"></textarea>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;font-size:12px;color:#0369A1;margin-bottom:16px">
+              <span style="flex-shrink:0;font-size:14px">🔍</span>
+              <span>当前任务默认开启<b>联网搜索</b>，AI 将自动补充参数表格中未给到的细节数据（如车型参数、产品信息等）。</span>
+            </div>
+            <div class="form-item">
+              <label>审核策略</label>
+                <div style="display:flex;gap:16px;margin-top:8px">
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="radio" name="auditPolicy51" value="ai" checked> AI 预审
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="radio" name="auditPolicy51" value="manual"> 人工审核
+                  </label>
+                </div>
+            </div>
+          </div><!-- end skill51Config -->
+        </div><!-- end step2 -->
+        <!-- Step 3: Distribution Config (Skill 41) vs Generic Param Table -->
+        <div id="step3" class="step-content" style="display:none">
+
+          <!-- Generic Param Table (For Skill 1, 2) -->
+          <div id="genericStep3Config" style="display:none">
+            <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-end">
+              <div>
+                <div style="font-size:14px;font-weight:600;margin-bottom:4px" id="skillInfoInStep2">当前 Skill: -</div>
+                <div style="font-size:12px;color:var(--txm)">请在下方表格填入各篇内容的生成参数，或直接导入 Excel。</div>
+              </div>
+              <div>
+                <button class="btn-g" style="font-size:12px">📥 下载模板</button>
+                <button class="btn-p" style="font-size:12px;margin-left:8px">📤 导入数据</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="m-table">
+                <thead>
+                  <tr id="tableHeader">
+                    <!-- Dynamic Headers -->
+                  </tr>
+                </thead>
+                <tbody id="tableBody">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+              <div style="padding:12px;text-align:center;border-top:1px solid var(--bd)">
+                <span style="color:var(--p);font-size:13px;cursor:pointer;font-weight:500" onclick="addTableRow()">+
+                  添加一行数据</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Mapping Table (For Skill 51: 生成+发布) -->
+          <div id="skill51Step3Config" style="display:none">
+            <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end">
+              <div>
+                <div style="font-size:14px;font-weight:600;margin-bottom:4px">主题 × 账号映射表</div>
+                <div style="font-size:12px;color:var(--txm)">每行 = 一个生成主题 → 对应发布账号</div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn-g" style="font-size:12px">📥 下载模板</button>
+                <button class="btn-p" style="font-size:12px;margin-left:8px">📤 导入数据</button>
+              </div>
+            </div>
+
+            <!-- 账号组快速分配 -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:12px 16px;background:var(--bg);border-radius:10px;border:1px solid var(--bd)">
+              <span style="font-size:13px;font-weight:600;white-space:nowrap">账号组快速分配</span>
+              <select class="m-input" id="skill51AccountGroup" onchange="applyAccountGroup51(this.value)" style="width:180px;font-size:13px">
+                <option value="">-- 选择账号组 --</option>
+                <option value="matrix">矩阵号组（10个）</option>
+                <option value="education">教育赛道组（5个）</option>
+                <option value="lifestyle">生活好物组（8个）</option>
+              </select>
+              <span id="groupApplyHint51" style="font-size:12px;color:var(--gr);display:none">✅ 已按顺序分配</span>
+            </div>
+
+            <!-- 数据表格 -->
+            <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+              <table class="m-table" style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">
+                <colgroup>
+                  <col style="width:44px">
+                  <col>
+                  <col style="width:140px">
+                  <col style="width:22%">
+                  <col style="width:90px">
+                  <col style="width:52px">
+                </colgroup>
+                <thead>
+                  <tr style="background:#f8f9fb">
+                    <th style="padding:12px 16px;text-align:left;border-bottom:1px solid var(--bd)">#</th>
+                    <th style="padding:12px 16px;text-align:left;border-bottom:1px solid var(--bd)">创作主题与要点</th>
+                    <th style="padding:12px 16px;text-align:left;border-bottom:1px solid var(--bd)">图片图源 <span style="color:var(--txm);font-weight:400;font-size:11px">(选填)</span></th>
+                    <th style="padding:12px 16px;text-align:left;border-bottom:1px solid var(--bd)">发布账号</th>
+                    <th style="padding:12px 16px;text-align:left;border-bottom:1px solid var(--bd)">状态</th>
+                    <th style="padding:12px 16px;text-align:center;border-bottom:1px solid var(--bd)">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="skill51TableBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+              <div style="padding:12px;text-align:center;border-top:1px solid var(--bd)">
+                <span style="color:var(--p);font-size:13px;cursor:pointer;font-weight:500" onclick="addSkill51TableRow()">+ 添加一行数据</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Distribution Preview Table (For Skill 41) -->
+          <div id="skill41Step3Config" style="display:none">
+
+            <!-- Account Group Quick Assign Toolbar -->
+            <div class="dist-toolbar" id="distToolbar">
+              <div style="display:flex; align-items:center; gap:12px; flex:1">
+                <span style="font-size:13px; font-weight:600; white-space:nowrap">账号组快速分配</span>
+                <select class="m-input dist-group-select" id="accountGroupSelect"
+                  onchange="applyAccountGroup(this.value)" style="width:180px; font-size:13px">
+                  <option value="">-- 选择账号组 --</option>
+                  <option value="matrix">矩阵号组（全部 10 个）</option>
+                  <option value="education">教育赛道账号组（5个）</option>
+                  <option value="lifestyle">生活好物组（8个）</option>
+                </select>
+                <span id="groupApplyHint" style="font-size:12px; color:var(--gr); display:none">✅ 已按账号组顺序分配</span>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center">
+                <span style="font-size:12px; color:var(--txm)">已选 <b id="dist-count" style="color:var(--p)">2</b>
+                  篇内容</span>
+              </div>
+            </div>
+
+            <!-- Distribution Preview Table -->
+            <div class="dist-table-wrap">
+              <table class="dist-table" id="distTable">
+                <thead>
+                  <tr>
+                    <th style="width:220px">创作文章</th>
+                    <th style="width:200px">发布账号</th>
+                    <th>发布配置</th>
+                    <th style="width:120px">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="distTableBody">
+                  <!-- Row 1: Account assigned with issue -->
+                  <tr class="dist-row" data-idx="0">
+                    <td>
+                      <div class="dist-article">
+                        <div class="dist-article-thumb">🖼️</div>
+                        <div class="dist-article-info">
+                          <div class="dist-article-title">如何给孩子挑选合适的学习机？这4个关键点比品牌更重要！</div>
+                          <div class="dist-article-meta">图文 · 更新 02月03日</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="dist-account-wrap">
+                        <div class="dist-account-sel">
+                          <div class="dist-account-avatar" style="background:var(--bl)">灯</div>
+                          <select class="dist-account-input">
+                            <option>小灯发芽ing</option>
+                            <option>矩阵号01</option>
+                            <option>矩阵号02</option>
+                          </select>
+                        </div>
+                        <div class="dist-account-status err">账号过期，<a href="#" style="color:var(--or)">前往绑定</a></div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="dist-config-preview" onclick="openConfigDrawer(0)">
+                        <div class="dist-config-thumb">📷</div>
+                        <div class="dist-config-info">
+                          <div class="dist-config-title">如何给孩子挑选合适的学习机…</div>
+                          <div class="dist-config-meta">IP: 当前所在地 · <span style="color:var(--p)">立即发布</span></div>
+                          <div class="dist-config-warn">⚠️ 发布配置存在异常，请点击查看</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div style="display:flex; gap:8px; align-items:center">
+                        <button class="dist-action-btn" onclick="openConfigDrawer(0)">展开配置</button>
+                        <span class="dist-delete-btn" onclick="this.closest('tr').remove()">删除</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Row 2: No account selected -->
+                  <tr class="dist-row" data-idx="1">
+                    <td>
+                      <div class="dist-article">
+                        <div class="dist-article-thumb" style="background:var(--bl)">🖼️</div>
+                        <div class="dist-article-info">
+                          <div class="dist-article-title">在书海中，遇见更好的自己✨</div>
+                          <div class="dist-article-meta">图文 · 更新 01月21日</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="dist-account-wrap">
+                        <div class="dist-account-sel">
+                          <div class="dist-account-avatar" style="background:var(--grl); color:var(--txm)">?</div>
+                          <select class="dist-account-input">
+                            <option value="">选择账号…</option>
+                            <option>小灯发芽ing</option>
+                            <option>矩阵号01</option>
+                            <option>矩阵号02</option>
+                          </select>
+                        </div>
+                        <div class="dist-account-status pend">待选择账号</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="dist-config-preview pending">
+                        <div class="dist-config-thumb" style="background:var(--grl); color:var(--txm)">—</div>
+                        <div class="dist-config-info" style="color:var(--txm)">待选择发布账号后自动填充默认配置</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div style="display:flex; gap:8px; align-items:center">
+                        <button class="dist-action-btn" style="opacity:0.4; cursor:not-allowed" disabled>展开配置</button>
+                        <span class="dist-delete-btn" onclick="this.closest('tr').remove()">删除</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- end skill41Step3Config -->
+
+          </div><!-- end step3 -->
+
+        </div><!-- end modal-body -->
+
+        <div class="modal-footer">
+          <div>
+            <button class="btn-g" id="btnPrev" style="display:none" onclick="prevStep()">上一步</button>
+          </div>
+          <div style="display:flex;gap:12px">
+            <button class="btn-g" onclick="closeModal()">取消</button>
+            <button class="btn-p" id="btnNext" onclick="nextStep()">下一步</button>
+            <button class="btn-p" id="btnConfirm" style="display:none" onclick="finishTask()">确认提交并执行</button>
+          </div>
+        </div>
+      </div><!-- end modal-card -->
+    </div><!-- end taskModal -->
+  </div><!-- fix: close unclosed div inside taskModal -->
+
+  <script>
+      let currentStep = 1;
+      let selectedSkill = null;
+      const skills = [
+        { id: 1, name: '小红书图文模板仿写', emoji: '📕', desc: '上传品牌模板，AI 批量生成同风格图文', params: ['创作主题与要点', '图片图源（选填）'], canPub: false },
+        { id: 41, name: '发布至小红书', emoji: '📤', desc: '将图文/长文一键分发至指定小红书账号', params: ['发布账号', '发布时间', '展示封面', '发布标题', '正文内容'], canPub: true },
+        { id: 51, name: '小红书一键模板创作+发布', emoji: '⚡', desc: '一键生成并发布小红书图文，全流程自动化', params: ['创作主题与要点', '图片图源（选填）', '发布账号'], canPub: true, isGenAndPub: true }
+      ];
+
+      function openModal() {
+        // Close SDT detail modal if it was open, then open the task modal
+        closeSkillDetail();
+        document.getElementById('taskModal').classList.add('show');
+        renderSkillList();
+        goToStep(1);
+      }
+
+      function closeModal() {
+        document.getElementById('taskModal').classList.remove('show');
+      }
+
+      function renderSkillList() {
+        const grid = document.getElementById('modalSkillGrid');
+        grid.innerHTML = skills.map(s => `
+        <div class="skill-card-m" onclick="selectSkill(${s.id}, this)">
+          ${s.canPub ? '<span class="badge-pub">含发布功能</span>' : ''}
+          <div style="font-size:28px;margin-bottom:12px">${s.emoji}</div>
+          <div style="font-weight:700;margin-bottom:4px">${s.name}</div>
+          <div style="font-size:12px;color:var(--txm);line-height:1.4">${s.desc}</div>
+        </div>
+      `).join('');
+      }
+
+      function selectSkill(id, el) {
+        document.querySelectorAll('.skill-card-m').forEach(c => c.classList.remove('on'));
+        el.classList.add('on');
+        selectedSkill = skills.find(s => s.id === id);
+        // Refresh step labels in the modal header after skill selection
+        goToStep(currentStep);
+      }
+
+      function goToStep(step) {
+        currentStep = step;
+        document.querySelectorAll('.step-content').forEach(s => s.style.display = 'none');
+        document.getElementById('step' + step).style.display = 'block';
+
+        // Update Indicators & Specialized Labels
+        for (let i = 1; i <= 3; i++) {
+          const ind = document.getElementById('stepInd' + i);
+          if (ind) {
+            ind.className = 'm-step ' + (i === step ? 'on' : (i < step ? 'done' : ''));
+
+            if (selectedSkill && selectedSkill.id === 41) {
+              if (i === 1) ind.innerHTML = `<span class="m-step-num">1</span>选择发布 Skill`;
+              if (i === 2) ind.innerHTML = `<span class="m-step-num">2</span>选择内容素材`;
+              if (i === 3) ind.innerHTML = `<span class="m-step-num">3</span>配置分发并预览`;
+            } else if (selectedSkill && selectedSkill.isGenAndPub) {
+              if (i === 1) ind.innerHTML = `<span class="m-step-num">1</span>选择 Skill`;
+              if (i === 2) ind.innerHTML = `<span class="m-step-num">2</span>全局设置`;
+              if (i === 3) ind.innerHTML = `<span class="m-step-num">3</span>内容 × 账号映射`;
+            } else {
+              if (i === 1) ind.innerHTML = `<span class="m-step-num">1</span>选择创作 Skill`;
+              if (i === 2) ind.innerHTML = `<span class="m-step-num">2</span>全局参数配置`;
+              if (i === 3) ind.innerHTML = `<span class="m-step-num">3</span>批量创作参数`;
+            }
+          }
+        }
+
+        // Footer buttons
+        document.getElementById('btnPrev').style.display = step > 1 ? 'block' : 'none';
+        document.getElementById('btnNext').style.display = step < 3 ? 'block' : 'none';
+        document.getElementById('btnConfirm').style.display = step === 3 ? 'block' : 'none';
+
+        if (step === 2) initStep2();
+        if (step === 3) initParamTable();
+      }
+
+      function nextStep() {
+        if (currentStep === 1 && !selectedSkill) {
+          alert('请先选择一个 Skill');
+          return;
+        }
+        goToStep(currentStep + 1);
+      }
+
+      function prevStep() {
+        goToStep(currentStep - 1);
+      }
+
+      function initParamTable() {
+        if (selectedSkill && selectedSkill.id === 41) {
+          document.getElementById('genericStep3Config').style.display = 'none';
+          document.getElementById('skill41Step3Config').style.display = 'block';
+          document.getElementById('skill51Step3Config').style.display = 'none';
+          // Skill 41 uses the distribution table — count selected content cards
+          const selectedCards = document.querySelectorAll('#contentLibraryGrid .content-card.on');
+          const countEl = document.getElementById('dist-count');
+          if (countEl) countEl.textContent = selectedCards.length || 2;
+          return; // Distribution table is static HTML; no rebuild needed
+        }
+
+        if (selectedSkill && selectedSkill.id === 51) {
+          document.getElementById('genericStep3Config').style.display = 'none';
+          document.getElementById('skill41Step3Config').style.display = 'none';
+          document.getElementById('skill51Step3Config').style.display = 'block';
+          // Initialize Skill 51 table
+          const tbody = document.getElementById('skill51TableBody');
+          tbody.innerHTML = '';
+          const sampleRows = [
+            { topic: '小鹏兔读书机 X1', points: '冰屏显示、护眼、续航强劲', account: '矩阵号01' },
+            { topic: '讯飞星火大模型', points: '新一代AI、性能提升、效率翻倍', account: '矩阵号02' },
+            { topic: '清华大学新课程', points: '顶级师资、实战项目、就业率高', account: '矩阵号03' }
+          ];
+          sampleRows.forEach((item, idx) => {
+            const row = document.createElement('tr');
+            row.style.borderBottom = '1px solid var(--bd)';
+            row.innerHTML = `
+              <td style="padding:12px 16px">${idx + 1}</td>
+              <td style="padding:12px 16px"><input type="text" class="m-input" value="${item.topic}" style="width:100%;font-size:12px"></td>
+              <td style="padding:12px 16px"><input type="text" class="m-input" value="${item.points}" style="width:100%;font-size:12px"></td>
+              <td style="padding:12px 16px">
+                <select class="m-input" style="width:100%;font-size:12px">
+                  <option value="">${item.account}</option>
+                  <option>矩阵号01</option>
+                  <option>矩阵号02</option>
+                  <option>矩阵号03</option>
+                  <option>矩阵号04</option>
+                  <option>矩阵号05</option>
+                </select>
+              </td>
+              <td style="padding:12px 16px"><span style="font-size:11px;color:var(--gr)">✅ 已就绪</span></td>
+              <td style="padding:12px 16px;text-align:center"><span style="color:var(--txm);cursor:pointer;font-size:12px" onclick="this.parentElement.parentElement.remove()">删除</span></td>
+            `;
+            row.querySelector('select').value = item.account;
+            tbody.appendChild(row);
+          });
+          return;
+        }
+
+        // Generic generation flow: rebuild the param table
+        document.getElementById('genericStep3Config').style.display = 'block';
+        document.getElementById('skill41Step3Config').style.display = 'none';
+        document.getElementById('skill51Step3Config').style.display = 'none';
+
+        const header = document.getElementById('tableHeader');
+        const info = document.getElementById('skillInfoInStep2');
+        if (info) info.innerText = `当前 Skill: ${selectedSkill.name}`;
+        if (header) {
+          header.innerHTML = '<th style="width:40px">#</th>' + selectedSkill.params.map(p => `<th>${p}</th>`).join('') + '<th style="width:48px">操作</th>';
+        }
+        const body = document.getElementById('tableBody');
+        if (body) {
+          body.innerHTML = '';
+          addTableRow();
+        }
+      }
+
+      function addTableRow() {
+        const body = document.getElementById('tableBody');
+        const rowNum = body.rows.length + 1;
+        const tr = document.createElement('tr');
+        let html = `<td style="padding:10px 12px;vertical-align:top">${rowNum}</td>`;
+        selectedSkill.params.forEach(p => {
+          if (p === '封面预览') {
+            html += `<td style="padding:10px 12px;vertical-align:top"><div style="width:40px;height:40px;border:1px dashed var(--bd);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--txm);font-size:18px">+</div></td>`;
+          } else if (p === '创作主题与要点') {
+            html += `<td style="padding:10px 12px;vertical-align:top"><textarea class="m-input" rows="3" placeholder="第一行：主题名称（如：蔚来ET5T）&#10;后续行：核心卖点&#10;如：家庭用车、冰箱彩电大沙发、续航800km…" style="width:100%;font-size:12px;resize:none;line-height:1.5"></textarea></td>`;
+          } else {
+            html += `<td style="padding:10px 12px;vertical-align:top"><input type="text" class="m-input" placeholder="输入${p}..." style="width:100%;font-size:12px"></td>`;
+          }
+        });
+        html += `<td style="padding:10px 12px;vertical-align:top;color:var(--txm);cursor:pointer;font-size:12px" onclick="this.parentElement.remove()">删除</td>`;
+        tr.innerHTML = html;
+        body.appendChild(tr);
+      }
+
+      function initStep2() {
+        if (selectedSkill && selectedSkill.id !== 41) {
+          document.getElementById('taskNameInput').value = `${selectedSkill.name}_${new Date().getMonth() + 1}${new Date().getDate()}_批量任务`;
+        }
+        document.getElementById('skill1Config').style.display = selectedSkill && selectedSkill.id === 1 ? 'block' : 'none';
+        document.getElementById('skill41Config').style.display = selectedSkill && selectedSkill.id === 41 ? 'block' : 'none';
+        document.getElementById('skill51Config').style.display = selectedSkill && selectedSkill.id === 51 ? 'block' : 'none';
+      }
+
+      // ── ACCOUNT GROUP AUTO-ASSIGN ──
+      const accountGroups = {
+        matrix: ['矩阵号01', '矩阵号02', '矩阵号03', '矩阵号04', '矩阵号05', '矩阵号06', '矩阵号07', '矩阵号08', '矩阵号09', '矩阵号10'],
+        education: ['教育号01', '教育号02', '教育号03', '教育号04', '教育号05'],
+        lifestyle: ['好物号01', '好物号02', '好物号03', '好物号04', '好物号05', '好物号06', '好物号07', '好物号08']
+      };
+
+      function applyAccountGroup(groupKey) {
+        if (!groupKey) return;
+        const accounts = accountGroups[groupKey] || [];
+        const rows = document.querySelectorAll('#distTableBody .dist-row');
+        rows.forEach((row, idx) => {
+          const sel = row.querySelector('.dist-account-input');
+          const statusEl = row.querySelector('.dist-account-status');
+          const actionBtn = row.querySelector('.dist-action-btn');
+          const account = accounts[idx % accounts.length];
+          if (sel) {
+            // Update or add option
+            let opt = Array.from(sel.options).find(o => o.text === account);
+            if (!opt) {
+              opt = new Option(account, account);
+              sel.add(opt);
+            }
+            sel.value = account;
+            // Update avatar
+            const avatar = row.querySelector('.dist-account-avatar');
+            if (avatar) {
+              avatar.textContent = account.slice(-2);
+              avatar.style.background = 'var(--p)';
+              avatar.style.color = '#fff';
+            }
+          }
+          if (statusEl) {
+            statusEl.textContent = '✅ 已自动匹配';
+            statusEl.className = 'dist-account-status ok';
+          }
+          if (actionBtn) {
+            actionBtn.disabled = false;
+            actionBtn.style.opacity = '1';
+            actionBtn.style.cursor = 'pointer';
+          }
+          // Update config preview
+          const configInfo = row.querySelector('.dist-config-info');
+          if (configInfo) {
+            configInfo.innerHTML = `IP: 当前所在地 · <span style="color:var(--p)">立即发布</span>`;
+            configInfo.style.color = '';
+          }
+          const configWrap = row.querySelector('.dist-config-preview');
+          if (configWrap) configWrap.classList.remove('pending');
+        });
+        // Show confirmation hint
+        const hint = document.getElementById('groupApplyHint');
+        if (hint) { hint.style.display = 'inline'; setTimeout(() => hint.style.display = 'none', 3000); }
+      }
+
+      // ── CONFIG DRAWER ──
+      let drawerCurrentIdx = 0;
+      const drawerArticles = [
+        { title: '如何给孩子挑选合适的学习机？', account: '小灯发芽ing' },
+        { title: '在书海中，遇见更好的自己✨', account: '矩阵号01' }
+      ];
+
+      function openConfigDrawer(idx) {
+        drawerCurrentIdx = idx;
+        updateDrawerContent();
+        document.getElementById('configDrawerOverlay').classList.add('show');
+        document.getElementById('configDrawer').classList.add('open');
+      }
+
+      function closeConfigDrawer() {
+        document.getElementById('configDrawerOverlay').classList.remove('show');
+        document.getElementById('configDrawer').classList.remove('open');
+      }
+
+      function drawerNav(dir) {
+        const newIdx = drawerCurrentIdx + dir;
+        if (newIdx < 0 || newIdx >= drawerArticles.length) return;
+        drawerCurrentIdx = newIdx;
+        updateDrawerContent();
+      }
+
+      function updateDrawerContent() {
+        const item = drawerArticles[drawerCurrentIdx];
+        if (!item) return;
+        const nameEl = document.getElementById('drawerArticleName');
+        const accountEl = document.getElementById('drawerAccountName');
+        const navLabel = document.getElementById('drawerNavLabel');
+        if (nameEl) nameEl.textContent = item.title;
+        if (accountEl) accountEl.textContent = item.account;
+        if (navLabel) navLabel.textContent = `${drawerCurrentIdx + 1} / ${drawerArticles.length}`;
+      }
+
+      function openModalWithSkill(id) {
+        openModal();
+        setTimeout(() => {
+          const el = document.querySelector(`[onclick="selectSkill(${id}, this)"]`);
+          if (el) {
+            selectSkill(id, el);
+            setTimeout(() => nextStep(), 50);
+          }
+        }, 50);
+      }
+
+      function detectTemplate(el) {
+        if (el.classList.contains('detected')) return;
+        el.classList.add('detected');
+        const detectedCount = 3;
+        el.style.borderColor = 'var(--gr)';
+        el.style.padding = '12px';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.gap = '12px';
+        el.style.textAlign = 'left';
+        el.innerHTML = `
+        <div style="display:flex;gap:4px">
+          <div style="width:40px;height:40px;border-radius:6px;background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:16px">🖼️</div>
+          <div style="width:40px;height:40px;border-radius:6px;background:var(--grl);display:flex;align-items:center;justify-content:center;font-size:16px">🖼️</div>
+          <div style="width:40px;height:40px;border-radius:6px;background:var(--yl);display:flex;align-items:center;justify-content:center;font-size:16px">🖼️</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--gr)">小红书爆款模板.zip 已解构</div>
+        </div>
+      `;
+        if (!el.parentElement.querySelector('.img-count-tag')) {
+          el.insertAdjacentHTML('afterend',
+            `<div class="img-count-tag" style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:7px 12px;background:#f0f8f5;border-radius:8px;font-size:12px">
+              <span style="color:var(--gr);font-weight:600">✅ 共检测到 ${detectedCount} 张模板版式</span>
+              <span style="color:var(--txm)">· 每篇将生成 ${detectedCount} 张配图</span>
+            </div>`
+          );
+        }
+      }
+
+      function detectTemplateBatch(el) {
+        if (el.classList.contains('detected')) return;
+        el.classList.add('detected');
+        const detectedCount = 3;
+        el.style.borderColor = 'var(--gr)';
+        el.style.padding = '12px';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.gap = '12px';
+        el.style.textAlign = 'left';
+        el.innerHTML = `
+        <div style="display:flex;gap:4px">
+          <div style="width:40px;height:40px;border-radius:6px;background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:16px">🖼️</div>
+          <div style="width:40px;height:40px;border-radius:6px;background:var(--grl);display:flex;align-items:center;justify-content:center;font-size:16px">🖼️</div>
+          <div style="width:40px;height:40px;border-radius:6px;background:var(--yl);display:flex;align-items:center;justify-content:center;font-size:16px">🖼️</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--gr)">小红书爆款模板.zip 已解构</div>
+        </div>
+      `;
+        if (!el.parentElement.querySelector('.img-count-tag')) {
+          el.insertAdjacentHTML('afterend',
+            `<div class="img-count-tag" style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:7px 12px;background:#f0f8f5;border-radius:8px;font-size:12px">
+              <span style="color:var(--gr);font-weight:600">✅ 共检测到 ${detectedCount} 张模板版式</span>
+              <span style="color:var(--txm)">· 每篇将生成 ${detectedCount} 张配图</span>
+            </div>`
+          );
+        }
+      }
+
+      function selectStrategy(el, type) {
+        el.parentElement.querySelectorAll('.opt-card').forEach(c => c.classList.remove('on'));
+        el.classList.add('on');
+      }
+
+      function addSkill51TableRow() {
+        const tbody = document.getElementById('skill51TableBody');
+        const rowNum = tbody.children.length + 1;
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid var(--bd)';
+        row.innerHTML = `
+          <td style="padding:10px 16px;vertical-align:top">${rowNum}</td>
+          <td style="padding:10px 16px;vertical-align:top"><textarea class="m-input" rows="3" placeholder="第一行：主题名称（如：蔚来ET5T）&#10;后续行：核心卖点&#10;如：家庭用车、冰箱彩电大沙发、续航800km…" style="width:100%;font-size:12px;resize:none;line-height:1.5"></textarea></td>
+          <td style="padding:10px 16px;vertical-align:top"><input type="text" class="m-input" placeholder="图集链接 / CDN" style="width:100%;font-size:12px"></td>
+          <td style="padding:10px 16px;vertical-align:top">
+            <select class="m-input" style="width:100%;font-size:12px">
+              <option value="">选择账号</option>
+              <option>矩阵号01</option>
+              <option>矩阵号02</option>
+              <option>矩阵号03</option>
+              <option>矩阵号04</option>
+              <option>矩阵号05</option>
+            </select>
+          </td>
+          <td style="padding:10px 16px;vertical-align:top"><span style="font-size:11px;color:var(--txm)">⚠ 待配置</span></td>
+          <td style="padding:10px 16px;vertical-align:top;text-align:center"><span style="color:var(--txm);cursor:pointer;font-size:12px" onclick="this.parentElement.parentElement.remove()">删除</span></td>
+        `;
+        tbody.appendChild(row);
+      }
+
+      function applyAccountGroup51(groupKey) {
+        if (!groupKey) return;
+        const accounts = accountGroups[groupKey] || [];
+        const rows = document.querySelectorAll('#skill51TableBody tr');
+        rows.forEach((row, idx) => {
+          const sel = row.querySelector('select');
+          const statusEl = row.querySelector('span');
+          const account = accounts[idx % accounts.length];
+          if (sel) {
+            let opt = Array.from(sel.options).find(o => o.text === account);
+            if (!opt) {
+              opt = new Option(account, account);
+              sel.add(opt);
+            }
+            sel.value = account;
+          }
+          if (statusEl) {
+            statusEl.textContent = '✅ 已就绪';
+            statusEl.style.color = 'var(--gr)';
+          }
+        });
+        const hint = document.getElementById('groupApplyHint51');
+        if (hint) { hint.style.display = 'inline'; setTimeout(() => hint.style.display = 'none', 3000); }
+      }
+
+      function finishTask() {
+        if (selectedSkill && selectedSkill.id === 41) {
+          alert('发布任务创建成功！内容已推入发布队列。');
+        } else if (selectedSkill && selectedSkill.id === 51) {
+          alert('生成+发布任务创建成功！系统将在后台自动执行整个流程。');
+        } else {
+          alert('任务创建成功！内容合成后将进入内容库。');
+        }
+        closeModal();
+      }
+
+      // ── SKILL DETAIL ──
+      function openSkillDetail(id) {
+        const overlay = document.getElementById('sdtOverlay');
+        if (!overlay) { console.error('sdtOverlay not found'); return; }
+
+        const titleEl = document.getElementById('sdtTitle');
+        if (titleEl) {
+          if (id === 1) titleEl.innerText = '小红书图文模板仿写';
+          else if (id === 41) titleEl.innerText = '发布至小红书';
+          else if (id === 51) titleEl.innerText = '小红书一键模板创作+发布';
+        }
+
+        const info1 = document.getElementById('sdtSkill1Info');
+        const run1  = document.getElementById('sdtSkill1Run');
+        const info41 = document.getElementById('sdtSkill41Info');
+        const run41  = document.getElementById('sdtSkill41Run');
+        const info51 = document.getElementById('sdtSkill51Info');
+        const run51  = document.getElementById('sdtSkill51Run');
+
+        if (info1)  info1.style.display  = (id === 1)  ? 'block' : 'none';
+        if (run1)   run1.style.display   = (id === 1)  ? 'block' : 'none';
+        if (info41) info41.style.display = (id === 41) ? 'block' : 'none';
+        if (run41)  run41.style.display  = (id === 41) ? 'block' : 'none';
+        if (info51) info51.style.display = (id === 51) ? 'block' : 'none';
+        if (run51)  run51.style.display  = (id === 51) ? 'block' : 'none';
+
+        // Reset Phase 1 for Skill 51 when opening
+        if (id === 51) {
+          const phase1 = document.getElementById('skill51Phase1');
+          const phase2 = document.getElementById('skill51Phase2');
+          if (phase1) phase1.style.display = 'block';
+          if (phase2) phase2.style.display = 'none';
+        }
+
+        const btnBatchUse = document.getElementById('btnBatchUse');
+        if (btnBatchUse) {
+          btnBatchUse.onclick = function () {
+            closeSkillDetail();
+            openModalWithSkill(id);
+          };
+        }
+
+        overlay.style.display = 'flex';
+      }
+
+      function closeSkillDetail() {
+        var ov = document.getElementById('sdtOverlay'); if(ov) ov.style.display = 'none';
+      }
+
+      const mockImgs = [
+        { bg: 'linear-gradient(135deg,#FFE4E9,#FDF2F8)', icon: '📸' },
+        { bg: 'linear-gradient(135deg,#E8D9FC,#F2EFFE)', icon: '✨' },
+        { bg: 'linear-gradient(135deg,#D1FAE5,#ECFDF5)', icon: '🌟' }
+      ];
+      function openImportModal() {
+        document.getElementById('importOverlay').classList.add('show');
+      }
+      function closeImportModal() {
+        document.getElementById('importOverlay').classList.remove('show');
+      }
+      function addImportRow() {
+        const tbody = document.getElementById('importTableBody');
+        const rowCount = tbody.rows.length + 1;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+        <td>${rowCount}</td>
+        <td><select class="m-input" style="font-size:12px"><option>选账号</option><option selected>小灯发芽ing</option></select></td>
+        <td><input class="m-input" style="font-size:12px" placeholder="写个标题..."></td>
+        <td><textarea class="m-input" style="font-size:12px; height:60px; resize:none;" placeholder="输入正文..."></textarea></td>
+        <td><div style="width:40px;height:40px;background:var(--grl);border:1px dashed var(--bd);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;">+</div></td>
+        <td><span style="color:var(--txm); cursor:pointer;" onclick="this.parentElement.parentElement.remove(); updateImportCount()">删除</span></td>
+      `;
+        tbody.appendChild(row);
+        updateImportCount();
+      }
+      function updateImportCount() {
+        document.getElementById('importCount').innerText = document.getElementById('importTableBody').rows.length;
+      }
+      function confirmImport() {
+        const grid = document.getElementById('contentLibraryGrid');
+        const newCard = document.createElement('div');
+        newCard.className = 'content-card on';
+        newCard.onclick = function () { this.classList.toggle('on'); updateSelectedCount(); };
+        newCard.innerHTML = `
+        <div class="content-card-check">✓</div>
+        <div class="content-card-img" style="background:#eee">📄</div>
+        <div class="content-card-body">
+          <div class="content-card-title">新导入的笔记内容...</div>
+          <div class="content-card-date"><span>更新于 刚才</span> <span>👁️</span></div>
+        </div>
+      `;
+        grid.prepend(newCard);
+        updateSelectedCount();
+        closeImportModal();
+      }
+      function updateSelectedCount() {
+        const selected = document.querySelectorAll('#contentLibraryGrid .content-card.on').length;
+        document.getElementById('selectedCountText').innerHTML = `已选 <b style="color:var(--p)">${selected}</b> 篇素材`;
+      }
+
+      function runTrial() {
+        const loading = document.getElementById('trialLoading');
+        const output = document.getElementById('trialOutput');
+        output.classList.remove('show');
+        loading.classList.add('show');
+        setTimeout(() => {
+          loading.classList.remove('show');
+          document.getElementById('trialImgs').innerHTML =
+            mockImgs.map(i => `<div class="sdt-out-img" style="background:${i.bg}">${i.icon}</div>`).join('');
+          const rawTopic = document.getElementById('trialTopic').value || '小鹏兔读书机 X1';
+          const topic = rawTopic.split('\n')[0];
+          document.getElementById('trialTitle').innerText = `【测评】${topic}，真的值得买吗？用了两周说实话`;
+          document.getElementById('trialBody').innerText = `入手${topic}两周了，来说说真实感受 📖\n\n${rawTopic}\n\n唯一的小遗憾是充电速度略慢，但续航给力，完全可以接受 💬\n\n你们有在用同款吗？欢迎评论区交流～\n\n#读书机 #护眼神器 #学习好物`;
+          output.classList.add('show');
+          output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 1800);
+      }
+
+      // ── SKILL 51: Gen+Pub Trial Functions ──
+      function runTrial51() {
+        const loading = document.getElementById('trialLoading51');
+        const phase1 = document.getElementById('skill51Phase1');
+        const phase2 = document.getElementById('skill51Phase2');
+
+        // Validate inputs
+        const topic = document.getElementById('trialTopic51').value;
+        if (!topic) {
+          alert('请填写主题/标的');
+          return;
+        }
+
+        // Show loading in Phase 1
+        loading.style.display = 'flex';
+        setTimeout(() => {
+          // Hide Phase 1, show Phase 2
+          loading.style.display = 'none';
+          phase1.style.display = 'none';
+          phase2.style.display = 'block';
+
+          // Simulate generation
+          const mockImages = ['🖼️', '🖼️', '🖼️'];
+          document.getElementById('trialImgs51').innerHTML =
+            mockImages.map(img => `<div style="width:80px;height:80px;background:var(--bl);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px">${img}</div>`).join('');
+
+          const titleLine = topic.split('\n')[0];
+          document.getElementById('trialTitle51').innerText = `【测评】${titleLine}，真的值得买吗？用了两周说实话`;
+          document.getElementById('trialBody51').innerText = `入手${titleLine}两周了，来说说真实感受 📖\n\n${topic}\n\n你们有在用同款吗？欢迎评论区交流～\n\n#推荐 #好物 #分享`;
+
+          // Scroll to preview
+          phase2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 1500);
+      }
+
+      function resetTrial51() {
+        const phase1 = document.getElementById('skill51Phase1');
+        const phase2 = document.getElementById('skill51Phase2');
+        phase2.style.display = 'none';
+        phase1.style.display = 'block';
+        phase1.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      function confirmPublish51() {
+        const account = document.getElementById('trialAccount51').value;
+        if (!account) {
+          alert('请选择发布账号');
+          return;
+        }
+        alert('✅ 内容已发布至账号，并存入内容库！');
+        closeSkillDetail();
+      }
+
+      function goToBatchTask51() {
+        closeSkillDetail();
+        setTimeout(() => {
+          openModal();
+          selectedSkill = 51;
+          goToStep(2);
+          updateStepDisplay();
+          initStep2();
+        }, 300);
+      }
+
+      // ── INIT: Bind skill card clicks ──
+      // .sc elements are already in the DOM above this script tag, bind directly
+      document.querySelectorAll('.sg .sc[data-skill-id]').forEach(function (card) {
+        card.addEventListener('click', function () {
+          openSkillDetail(parseInt(card.getAttribute('data-skill-id')));
+        });
+      });
+    </script>
+
+    <!-- ── SKILL DETAIL MODAL ── -->
+    <div class="sdt-overlay" id="sdtOverlay" onclick="if(event.target===this)closeSkillDetail()">
+      <div class="sdt-modal">
+        <div class="sdt-head">
+          <div style="font-size:12px;color:var(--txm)">快捷发起 &rsaquo; <b style="color:var(--tx1)"
+              id="sdtTitle">小红书图文模板仿写</b></div>
+          <div class="modal-close" onclick="closeSkillDetail()">✕</div>
+        </div>
+        <div class="sdt-body">
+
+          <!-- Left: Skill 1 Info -->
+          <div class="sdt-info" id="sdtSkill1Info">
+            <div>
+              <div class="sdt-icon" style="background:linear-gradient(135deg,#FFE4E9,#FDF2F8)">📕</div>
+              <div class="sdt-skill-name">小红书图文模板仿写</div>
+              <div style="font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:10px">上传品牌图文模板，AI
+                自动解构版式与配文区域，按主题批量生成同风格图文。</div>
+              <div class="sdt-tags">
+                <span class="sdt-tag">小红书</span>
+                <span class="sdt-tag">图文</span>
+                <span class="sdt-tag">模板仿写</span>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">全局设置（整任务共用）</div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--rd)"></div>
+                <div><b>配图模板</b><span style="color:var(--rd)"> *</span><br><span
+                    style="color:var(--txm);font-size:12px">品牌图文模板，AI 解构版式</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--txm)"></div>
+                <div><b>正文结构参考</b><span style="color:var(--txm);font-size:12px"> 选填</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--txm)"></div>
+                <div><b>每篇配图张数</b><br><span style="color:var(--txm);font-size:12px">由上传模板自动决定</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">逐行参数（每篇不同）</div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--p)"></div>
+                <div><b>创作主题与要点</b><span style="color:var(--rd)"> *</span><br><span
+                    style="color:var(--txm);font-size:12px">第一行填主题名称，后续行填核心卖点，合并填写</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--txm)"></div>
+                <div><b>图片图源</b><span style="color:var(--txm);font-size:12px"> 选填，每行对应一个图集链接，不填则 AI 生图</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">交付物</div>
+              <div style="font-size:12px;color:var(--tx2);line-height:1.7">封面图（N 张）+ 标题 + 正文<br>每张配图含 AI 按主题实时生成的配文
+              </div>
+            </div>
+          </div>
+
+          <!-- Left: Skill 51 Info -->
+          <div class="sdt-info" id="sdtSkill51Info" style="display:none">
+            <div>
+              <div class="sdt-icon" style="background:linear-gradient(135deg,#E8D9FC,#F2EFFE)">⚡</div>
+              <div class="sdt-skill-name">小红书一键模板创作+发布</div>
+              <div style="font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:10px">一键生成同风格图文，自动分发至指定账号，从内容创作到发布上线的全流程自动化。</div>
+              <div class="sdt-tags">
+                <span class="sdt-tag">小红书</span>
+                <span class="sdt-tag pub">含发布</span>
+                <span class="sdt-tag">全流程自动化</span>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">全局设置（整任务共用）</div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--rd)"></div>
+                <div><b>配图模板</b><span style="color:var(--rd)"> *</span><br><span
+                    style="color:var(--txm);font-size:12px">品牌模板，AI 解构版式</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--txm)"></div>
+                <div><b>每篇配图张数</b><br><span style="color:var(--txm);font-size:12px">由上传模板自动决定</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--txm)"></div>
+                <div><b>正文结构参考</b><span style="color:var(--txm);font-size:12px"> 选填</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--rd)"></div>
+                <div><b>审核策略</b><span style="color:var(--rd)"> *</span><br><span
+                    style="color:var(--txm);font-size:12px">AI 预审 / 人工审核</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">逐行参数（每篇不同）</div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--p)"></div>
+                <div><b>创作主题与要点</b><span style="color:var(--rd)"> *</span><br><span
+                    style="color:var(--txm);font-size:12px">第一行填主题名称，后续行填核心卖点，合并填写</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--txm)"></div>
+                <div><b>图片图源</b><span style="color:var(--txm);font-size:12px"> 选填，每行对应一个图集链接，不填则 AI 生图</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--p)"></div>
+                <div><b>发布账号</b><span style="color:var(--rd)"> *</span><br><span
+                    style="color:var(--txm);font-size:12px">自动加载账号默认配置</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">交付物</div>
+              <div style="font-size:12px;color:var(--tx2);line-height:1.7">📷 封面图（N 张）+ 标题 + 正文<br>✅ 已自动发布至对应账号</div>
+            </div>
+          </div>
+
+          <!-- Left: Skill 41 Info -->
+          <div class="sdt-info" id="sdtSkill41Info" style="display:none">
+            <div>
+              <div class="sdt-icon" style="background:var(--bl);color:#fff">📤</div>
+              <div class="sdt-skill-name">发布至小红书</div>
+              <div style="font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:10px">
+                将单篇已有内容（图文/视频）一键分发至指定的小红书多账号，支持定时排期与话题绑定。</div>
+              <div class="sdt-tags">
+                <span class="sdt-tag">小红书</span>
+                <span class="sdt-tag">发布</span>
+                <span class="sdt-tag">单篇分发</span>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">账号与发布策略</div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--rd)"></div>
+                <div><b>目标账号组</b><span style="color:var(--rd)"> *</span><br><span
+                    style="color:var(--txm);font-size:12px">选定的小红书账号或矩阵分组</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--rd)"></div>
+                <div><b>发布方式</b><span style="color:var(--rd)"> *</span><br><span
+                    style="color:var(--txm);font-size:12px">立即发布 / 定时打散</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--txm)"></div>
+                <div><b>互动及权限控制</b><span style="color:var(--txm);font-size:12px"> 选填（原创/可见范围/合拍等）</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--txm)"></div>
+                <div><b>全局话题 / POI关联</b><span style="color:var(--txm);font-size:12px"> 选填</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">待发布内容素材 (单篇)</div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--p)"></div>
+                <div><b>发布图片/视频</b><span style="color:var(--rd)"> *</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--p)"></div>
+                <div><b>发布标题</b><span style="color:var(--rd)"> *</span></div>
+              </div>
+              <div class="sdt-param-row">
+                <div class="sdt-param-dot" style="background:var(--p)"></div>
+                <div><b>正文内容</b><span style="color:var(--rd)"> *</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="sdt-section-label">交付物</div>
+              <div style="font-size:12px;color:var(--tx2);line-height:1.7">✅ 平台真实发表后的数据链接</div>
+            </div>
+          </div>
+
+          <!-- Right: Single Run Panel (Skill 1) -->
+          <div class="sdt-run" id="sdtSkill1Run">
+            <div style="font-weight:700;font-size:15px">🧪 单次试用</div>
+
+            <div class="sdt-run-section">
+              <div class="sdt-run-section-head">⚙️ 全局设置</div>
+              <div class="sdt-run-section-body">
+                <div>
+                  <div class="sdt-label">配图模板 <span style="color:var(--rd)">*</span> <span style="color:var(--txm);font-weight:400;font-size:11px">(可上传多张)</span></div>
+                  <div id="trialUploadWrap">
+                    <div class="sdt-upload" id="trialUpload" onclick="detectTemplate(this)">
+                      <div style="font-size:18px;margin-bottom:4px">🖼️</div>
+                      <div style="font-size:12px;font-weight:600;margin-bottom:2px">上传品牌模板图文</div>
+                      <div style="font-size:11px;color:var(--txm)">PNG / JPG 图片组或 ZIP，AI 自动解构版式</div>
+                      <button class="btn-g" style="margin-top:8px;font-size:11px">选择文件</button>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                    <div class="sdt-label" style="margin-bottom:0">正文结构参考 <span
+                        style="color:var(--txm);font-weight:400;font-size:11px">(选填)</span>
+                    </div>
+                    <button style="background:none;border:none;font-size:11px;color:var(--p);cursor:pointer;font-family:inherit;font-weight:500;padding:0;white-space:nowrap"
+                      onclick="openTemplatePicker('text', function(tpl){ document.getElementById('trialRef1').value = tpl.content })">
+                      🗃️ 从模板库选取
+                    </button>
+                  </div>
+                  <textarea class="m-input" id="trialRef1" rows="2" style="font-size:13px;resize:none"
+                    placeholder="粘贴参考文章，AI 将仿其结构和语气生成正文…"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="sdt-run-section">
+              <div class="sdt-run-section-head">📄 单篇内容参数</div>
+              <div class="sdt-run-section-body">
+                <div>
+                  <div class="sdt-label">创作主题与要点 <span style="color:var(--rd)">*</span></div>
+                  <textarea class="m-input" id="trialTopic" rows="4" style="font-size:13px;resize:none;line-height:1.6" placeholder="如：小鹏兔读书机 X1 新品发布&#10;冰屏显示屏护眼不刺眼、E-ink 双屏切换流畅、内置 20000 本书资源、续航 4 周…"></textarea>
+                </div>
+                <div>
+                  <div class="sdt-label">图片图源 <span style="color:var(--txm);font-weight:400;font-size:11px">(选填，不填则 AI 生图)</span></div>
+                  <input class="m-input" style="font-size:13px" placeholder="本主题对应的图集链接 / CDN">
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;font-size:12px;color:#0369A1;margin-bottom:12px">
+              <span style="flex-shrink:0;font-size:14px">🔍</span>
+              <span>当前内容默认开启<b>联网搜索</b>，AI 将自动补充未给到的细节数据。</span>
+            </div>
+
+            <button class="btn-p" style="width:100%;padding:13px;font-size:14px" onclick="runTrial()">▶ 开始试运行</button>
+
+            <div class="sdt-loading" id="trialLoading">
+              <div class="sdt-spinner"></div>
+              <div style="font-size:13px;color:var(--txm)">AI 正在生成中…</div>
+            </div>
+
+            <div class="sdt-output" id="trialOutput">
+              <div class="sdt-output-head">✨ 试用输出效果</div>
+              <div class="sdt-output-body">
+                <div class="sdt-out-images" id="trialImgs"></div>
+                <div class="sdt-out-title" id="trialTitle"></div>
+                <div class="sdt-out-body" id="trialBody" style="white-space:pre-line"></div>
+              </div>
+              <div style="padding:0 16px 16px;display:flex;gap:10px;border-top:1px solid var(--bd);margin-top:4px">
+                <button class="btn-g" style="flex:1;font-size:13px" onclick="alert('已存入草稿箱！')">📥 存入草稿箱</button>
+                <button class="btn-g" style="flex:1;font-size:13px" onclick="alert('内容已导出为 ZIP')">⬇ 导出</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Single Publish Panel (Skill 41) -->
+          <div class="sdt-run" id="sdtSkill41Run" style="display:none">
+            <div class="m-tabs">
+              <div class="m-tab on">� 图文</div>
+              <div class="m-tab">📄 干字长文</div>
+            </div>
+
+            <div class="sdt-run-section">
+              <div class="sdt-run-section-head"
+                style="display:flex; justify-content:space-between; align-items:center;">
+                <span>🖼️ 展示封面 <span style="color:var(--rd)">*</span></span>
+                <span style="font-size:11px; font-weight:400; color:var(--txm)">支持拖拽排序</span>
+              </div>
+              <div class="sdt-run-section-body">
+                <div style="display:flex;gap:10px; flex-wrap: wrap;">
+                  <div
+                    style="width:60px;height:60px;border-radius:6px;background:var(--grl);display:flex;align-items:center;justify-content:center;font-size:18px; position: relative;">
+                    🖼️
+                    <div
+                      style="position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 9px; background: rgba(0,0,0,0.4); color: #fff; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+                      5/18</div>
+                  </div>
+                  <div
+                    style="width:60px;height:60px;border-radius:6px;background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:18px">
+                    🖼️</div>
+                  <div
+                    style="width:60px;height:60px;border-radius:6px;background:var(--grl);display:flex;align-items:center;justify-content:center;font-size:18px">
+                    🖼️</div>
+                  <div
+                    style="width:60px;height:60px;border-radius:6px;background:var(--grl);display:flex;align-items:center;justify-content:center;font-size:18px">
+                    🖼️</div>
+                  <div
+                    style="width:60px;height:60px;border:1px dashed var(--bd);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--txm);cursor:pointer">
+                    +</div>
+                </div>
+                <p style="font-size:11px; color:var(--txm); margin-top: 8px;">优质的图片有利于推荐，支持格式JPG，JPEG，PNG</p>
+              </div>
+            </div>
+
+            <div class="sdt-run-section">
+              <div class="sdt-run-section-body">
+                <div style="margin-bottom: 16px;">
+                  <div class="sdt-label">标题 <span style="color:var(--rd)">*</span></div>
+                  <input class="m-input" style="font-size:13px" value="Atlas正在重塑产品经理的工作流">
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                  <div class="sdt-label">话题</div>
+                  <input class="m-input" style="font-size:13px" placeholder="请选择话题">
+                  <div class="sdt-char-hint"><span>字数: 70</span> <span>❓</span></div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                  <div class="sdt-label">地点</div>
+                  <input class="m-input" style="font-size:13px" placeholder="添加地点">
+                </div>
+
+                <div style="display:flex; gap:12px; margin-bottom: 16px;">
+                  <div style="flex:1">
+                    <div class="sdt-label">合集</div>
+                    <input class="m-input" style="font-size:13px" placeholder="添加合集">
+                  </div>
+                  <div style="flex:1">
+                    <div class="sdt-label">关联群聊</div>
+                    <input class="m-input" style="font-size:13px" placeholder="选择群聊">
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 16px; padding-top: 12px; border-top: 1px dashed var(--bd);">
+                  <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox"> 原创声明
+                  </label>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                  <div class="sdt-label">内容类型声明</div>
+                  <input class="m-input" style="font-size:13px" placeholder="添加内容类型声明">
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                  <div class="sdt-label">可见范围</div>
+                  <div class="sdt-v-group">
+                    <label class="sdt-v-opt"><input type="radio" name="v41" checked> 公开可见</label>
+                    <label class="sdt-v-opt"><input type="radio" name="v41"> 仅自己可见</label>
+                    <label class="sdt-v-opt"><input type="radio" name="v41"> 仅互关好友可见</label>
+                  </div>
+                </div>
+
+                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 12px;">
+                  <div class="sdt-label" style="margin-bottom:0">允许合拍</div>
+                  <label class="m-switch"><input type="checkbox" checked><span class="m-slider"></span></label>
+                </div>
+                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 16px;">
+                  <div class="sdt-label" style="margin-bottom:0">允许正文复制</div>
+                  <label class="m-switch"><input type="checkbox" checked><span class="m-slider"></span></label>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                  <div class="sdt-label">发文城市IP ❓</div>
+                  <input class="m-input" style="font-size:13px; background:var(--grl)" placeholder="当前所在地" disabled>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-p" style="width:100%;padding:13px;font-size:14px" onclick="alert('发布成功！')">🚀
+              确认发布</button>
+          </div>
+
+          <!-- Right: Gen+Pub Trial Panel (Skill 51) - Phase 1 -->
+          <div class="sdt-run" id="sdtSkill51Run" style="display:none">
+            <!-- Phase 1: Configure & Generate -->
+            <div id="skill51Phase1" style="display:block">
+              <div style="font-weight:700;font-size:15px">🧪 单次试用</div>
+
+              <div class="sdt-run-section">
+                <div class="sdt-run-section-head">⚙️ 全局设置</div>
+                <div class="sdt-run-section-body">
+                  <div>
+                    <div class="sdt-label">配图模板 <span style="color:var(--rd)">*</span> <span style="color:var(--txm);font-weight:400;font-size:11px">(可上传多张)</span></div>
+                    <div id="trialUploadWrap51">
+                      <div class="sdt-upload" id="trialUpload51" onclick="detectTemplate(this)">
+                        <div style="font-size:18px;margin-bottom:4px">🖼️</div>
+                        <div style="font-size:12px;font-weight:600;margin-bottom:2px">上传品牌模板图文</div>
+                        <div style="font-size:11px;color:var(--txm)">PNG / JPG 图片组或 ZIP，AI 自动解构版式</div>
+                        <button class="btn-g" style="margin-top:8px;font-size:11px">选择文件</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                      <div class="sdt-label" style="margin-bottom:0">正文结构参考 <span style="color:var(--txm);font-weight:400;font-size:11px">(选填)</span></div>
+                      <button style="background:none;border:none;font-size:11px;color:var(--p);cursor:pointer;font-family:inherit;font-weight:500;padding:0;white-space:nowrap"
+                        onclick="openTemplatePicker('text', function(tpl){ document.getElementById('trialRef51').value = tpl.content })">
+                        🗃️ 从模板库选取
+                      </button>
+                    </div>
+                    <textarea class="m-input" id="trialRef51" rows="2" style="font-size:13px;resize:none" placeholder="粘贴参考文章，AI 将仿其结构和语气生成正文…"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sdt-run-section">
+                <div class="sdt-run-section-head">📄 单篇内容参数</div>
+                <div class="sdt-run-section-body">
+                  <div>
+                    <div class="sdt-label">创作主题与要点 <span style="color:var(--rd)">*</span></div>
+                    <textarea class="m-input" id="trialTopic51" rows="4" style="font-size:13px;resize:none;line-height:1.6" placeholder="如：小鹏兔读书机 X1 新品发布&#10;冰屏显示屏护眼不刺眼、E-ink 双屏切换流畅、内置 20000 本书资源、续航 4 周…"></textarea>
+                  </div>
+                  <div>
+                    <div class="sdt-label">图片图源 <span style="color:var(--txm);font-weight:400;font-size:11px">(选填，不填则 AI 生图)</span></div>
+                    <input class="m-input" style="font-size:13px" placeholder="本主题对应的图集链接 / CDN">
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;font-size:12px;color:#0369A1;margin-bottom:4px">
+                <span style="flex-shrink:0;font-size:14px">🔍</span>
+                <span>当前内容默认开启<b>联网搜索</b>，AI 将自动补充未给到的细节数据。</span>
+              </div>
+
+              <div class="sdt-run-section">
+                <div class="sdt-run-section-head">🚀 发布账号</div>
+                <div class="sdt-run-section-body">
+                  <div>
+                    <div class="sdt-label">选择账号 <span style="color:var(--rd)">*</span></div>
+                    <select id="trialAccount51" class="m-input" style="font-size:13px">
+                      <option value="">-- 选择小红书账号 --</option>
+                      <option value="1" selected>小灯发芽ing</option>
+                      <option value="2">矩阵号01</option>
+                      <option value="3">矩阵号02</option>
+                      <option value="4">矩阵号03</option>
+                    </select>
+                    <div style="font-size:11px;color:var(--txm);margin-top:8px">✓ 已加载该账号的默认发布配置</div>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-p" style="width:100%;padding:13px;font-size:14px" onclick="runTrial51()">▶ 生成并预览</button>
+
+              <div class="sdt-loading" id="trialLoading51">
+                <div class="sdt-spinner"></div>
+                <div style="font-size:13px;color:var(--txm)">AI 正在生成中…</div>
+              </div>
+            </div>
+
+            <!-- Phase 2: Preview & Confirm Publish -->
+            <div id="skill51Phase2" style="display:none">
+              <div style="font-weight:700;font-size:15px;margin-bottom:16px">✨ 生成预览</div>
+
+              <div style="padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--bd);margin-bottom:16px">
+                <div style="font-size:12px;font-weight:600;color:var(--tx1);margin-bottom:12px">📷 封面图</div>
+                <div id="trialImgs51" style="display:flex;gap:10px;flex-wrap:wrap">
+                  <div style="width:80px;height:80px;background:var(--bl);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px">🖼️</div>
+                  <div style="width:80px;height:80px;background:var(--grl);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px">🖼️</div>
+                  <div style="width:80px;height:80px;background:var(--grl);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px">🖼️</div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:16px">
+                <div style="font-size:12px;font-weight:600;color:var(--tx1);margin-bottom:8px">📌 标题</div>
+                <div id="trialTitle51" style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--bd);font-size:13px;color:var(--tx2);line-height:1.6">如何给孩子挑选合适的学习机？这4个关键点比品牌更重要！</div>
+              </div>
+
+              <div style="margin-bottom:16px">
+                <div style="font-size:12px;font-weight:600;color:var(--tx1);margin-bottom:8px">📝 正文</div>
+                <div id="trialBody51" style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--bd);font-size:12px;color:var(--tx2);line-height:1.7;max-height:200px;overflow-y:auto;white-space:pre-line">选择学习机的关键不在品牌名气，而在于几个硬指标。首先看屏幕技术…</div>
+              </div>
+
+              <div style="padding:12px;background:#f0f8f5;border-radius:8px;border-left:3px solid var(--gr);margin-bottom:16px">
+                <div style="font-size:12px;font-weight:600;color:var(--gr);display:flex;align-items:center;gap:6px">✅ AI 预审通过</div>
+                <div style="font-size:11px;color:var(--txm);margin-top:4px">内容已通过敏感词检查，可直接发布</div>
+              </div>
+
+              <div style="display:flex;gap:10px">
+                <button class="btn-g" style="flex:1;padding:11px;font-size:13px" onclick="resetTrial51()">🔄 重新生成</button>
+                <button class="btn-p" style="flex:1;padding:11px;font-size:13px" onclick="confirmPublish51()">✓ 确认发布</button>
+              </div>
+
+              <button class="btn-g" style="width:100%;padding:11px;font-size:13px;margin-top:10px" onclick="goToBatchTask51()">⚡ 批量使用 →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sdt-foot">
+          <button class="btn-g" onclick="closeSkillDetail()">关闭</button>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span style="font-size:12px;color:var(--txm)">需更高级配置？</span>
+            <button class="btn-p" id="btnBatchUse">⚡ 批量使用 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BULK IMPORT OVERLAY ── -->
+    <div class="import-overlay" id="importOverlay">
+      <div class="import-modal">
+        <div class="import-head">
+          <div style="font-size:18px; font-weight:700;">批量导入小红书笔记</div>
+          <div class="modal-close" onclick="closeImportModal()">✕</div>
+        </div>
+        <div class="import-body">
+          <div
+            style="font-size:13px; color:var(--txm); margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+            <div>最多支持一次发布 <b>30</b> 篇笔记</div>
+            <div style="display:flex; gap:12px;">
+              <a href="#" style="color:var(--p); text-decoration:none;"><u>下载Excel导入模板</u></a>
+              <button class="btn-g" style="font-size:12px;">📤 Excel 导入笔记</button>
+              <button class="btn-g" style="font-size:12px; border-style:dashed;" onclick="addImportRow()">＋
+                添加内容</button>
+            </div>
+          </div>
+
+          <table class="m-table">
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th style="width:160px">发布账号 <span
+                    style="color:var(--p); font-size:11px; cursor:pointer; font-weight:400">[同步全部]</span></th>
+                <th>标题 (20字内)</th>
+                <th>正文内容 (1000字内)</th>
+                <th style="width:120px">封面预览</th>
+                <th style="width:60px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="importTableBody">
+              <tr>
+                <td>1</td>
+                <td><select class="m-input" style="font-size:12px">
+                    <option>选账号</option>
+                    <option selected>小灯发芽ing</option>
+                  </select></td>
+                <td><input class="m-input" style="font-size:12px" placeholder="写个标题..."></td>
+                <td><textarea class="m-input" style="font-size:12px; height:60px; resize:none;"
+                    placeholder="输入正文..."></textarea></td>
+                <td>
+                  <div
+                    style="width:40px;height:40px;background:var(--grl);border:1px dashed var(--bd);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;">
+                    +</div>
+                </td>
+                <td><span style="color:var(--txm); cursor:pointer;"
+                    onclick="this.parentElement.parentElement.remove(); updateImportCount()">删除</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="import-foot">
+          <div style="font-size:13px; color:var(--tx2);">
+            笔记数量: <b id="importCount">1</b>/30 &nbsp;&nbsp; 已上报图片总计: 0
+          </div>
+          <button class="btn-p" style="padding: 10px 32px;" onclick="confirmImport()">确认导入</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONFIG DRAWER ── -->
+    <div class="config-drawer-overlay" id="configDrawerOverlay" onclick="closeConfigDrawer()"></div>
+    <div class="config-drawer" id="configDrawer">
+      <div class="config-drawer-head">
+        <div>
+          <div style="font-size:14px; font-weight:700">发布配置</div>
+          <div style="font-size:12px; color:var(--txm); margin-top:2px" id="drawerArticleName">如何给孩子挑选合适的学习机…</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px">
+          <div class="config-drawer-nav">
+            <button onclick="drawerNav(-1)">‹</button>
+            <span id="drawerNavLabel">1 / 2</span>
+            <button onclick="drawerNav(1)">›</button>
+          </div>
+          <div class="modal-close" onclick="closeConfigDrawer()">✕</div>
+        </div>
+      </div>
+      <div class="config-drawer-body">
+        <!-- Platform Badge -->
+        <div style="display:flex; align-items:center; gap:8px; padding:10px 0 14px; border-bottom:1px solid var(--bd)">
+          <div
+            style="width:28px; height:28px; border-radius:6px; background:#FF2442; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#fff">
+            小</div>
+          <span style="font-weight:600; font-size:14px">小红书</span>
+          <span style="font-size:12px; color:var(--txm); margin-left:4px">· <span id="drawerAccountName"
+              style="color:var(--p)">小灯发芽ing</span></span>
+        </div>
+
+        <!-- Content Type -->
+        <div class="drawer-field-label" style="margin-top:16px">笔记类型</div>
+        <div class="m-tabs" style="margin-bottom:0">
+          <div class="m-tab on">🖼️ 图文</div>
+          <div class="m-tab">📄 千字长文</div>
+        </div>
+
+        <!-- Cover -->
+        <div class="drawer-field-label">发布封面 <span style="color:var(--rd)">*</span></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <div
+            style="width:56px;height:56px;border-radius:6px;background:linear-gradient(135deg,#FFE4E9,#FDF2F8);display:flex;align-items:center;justify-content:center;font-size:20px;position:relative">
+            🖼️
+            <div
+              style="position:absolute;bottom:0;width:100%;background:rgba(0,0,0,0.4);color:#fff;text-align:center;font-size:9px;border-bottom-left-radius:6px;border-bottom-right-radius:6px">
+              5/18</div>
+          </div>
+          <div
+            style="width:56px;height:56px;border-radius:6px;background:var(--grl);display:flex;align-items:center;justify-content:center;font-size:20px">
+            🖼️</div>
+          <div
+            style="width:56px;height:56px;border:1.5px dashed var(--bd);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--txm);cursor:pointer">
+            +</div>
+        </div>
+        <div style="font-size:11px; color:var(--txm); margin-top:6px">支持 JPG/PNG，支持拖拽排序</div>
+        <div style="font-size:11px; color:var(--or); margin-top:4px">⚠️ 文件类型错误，请重新上传</div>
+
+        <!-- Title -->
+        <div class="drawer-field-label">标题 <span style="color:var(--rd)">*</span></div>
+        <div style="position:relative">
+          <input class="m-input" style="font-size:13px; padding-right:50px" value="如何给孩子挑选合适的学习机？这4个关键点比品牌更重要！"
+            id="drawerTitle">
+          <div style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--txm)">
+            19/20</div>
+        </div>
+        <div style="font-size:11px; color:var(--txm); margin-top:4px">✨ AI 已生成</div>
+
+        <!-- Topic -->
+        <div class="drawer-field-label">话题</div>
+        <input class="m-input" style="font-size:13px" placeholder="请选择话题（最多10个）">
+        <div style="font-size:11px; color:var(--txm); margin-top:4px">字数: 65 ❓</div>
+
+        <!-- Location / Collection / Group Chat -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px">
+          <div>
+            <div class="drawer-field-label" style="margin-top:0">地点</div>
+            <input class="m-input" style="font-size:13px" placeholder="添加地点">
+          </div>
+          <div>
+            <div class="drawer-field-label" style="margin-top:0">合集</div>
+            <input class="m-input" style="font-size:13px" placeholder="添加合集">
+          </div>
+        </div>
+        <div class="drawer-field-label">关联群聊</div>
+        <input class="m-input" style="font-size:13px" placeholder="选择群聊">
+
+        <div class="drawer-section-title">权限与内容声明</div>
+
+        <!-- Original Declaration -->
+        <div class="drawer-toggle-row">
+          <label style="font-size:13px; display:flex; align-items:center; gap:8px; cursor:pointer">
+            <input type="checkbox" style="accent-color:var(--p)"> 原创声明
+          </label>
+        </div>
+        <!-- Content Type -->
+        <div class="drawer-field-label">内容类型声明</div>
+        <input class="m-input" style="font-size:13px" placeholder="添加内容类型声明">
+        <!-- Visibility -->
+        <div class="drawer-field-label">可见范围</div>
+        <div class="drawer-radio-group">
+          <label class="drawer-radio-opt"><input type="radio" name="dr-v" checked> 公开可见</label>
+          <label class="drawer-radio-opt"><input type="radio" name="dr-v"> 仅自己可见</label>
+          <label class="drawer-radio-opt"><input type="radio" name="dr-v"> 仅互关好友可见</label>
+        </div>
+        <!-- Toggles -->
+        <div class="drawer-toggle-row" style="margin-top:12px">
+          <span style="font-size:13px">允许合拍</span>
+          <label class="m-switch"><input type="checkbox" checked><span class="m-slider"></span></label>
+        </div>
+        <div class="drawer-toggle-row">
+          <span style="font-size:13px">允许正文复制</span>
+          <label class="m-switch"><input type="checkbox" checked><span class="m-slider"></span></label>
+        </div>
+
+        <div class="drawer-section-title">发布时间</div>
+        <div class="drawer-radio-group" style="margin-bottom:12px">
+          <label class="drawer-radio-opt"><input type="radio" name="dr-pub" checked> 立即发布</label>
+          <label class="drawer-radio-opt"><input type="radio" name="dr-pub"> 定时发布</label>
+        </div>
+
+        <!-- IP Location -->
+        <div class="drawer-field-label">发文城市 IP ❓</div>
+        <input class="m-input" style="font-size:13px; background:var(--grl)" placeholder="当前所在地" disabled>
+      </div>
+      <div class="config-drawer-foot">
+        <button class="btn-g" onclick="closeConfigDrawer()">返回列表</button>
+        <button class="btn-p" style="padding:8px 24px" onclick="closeConfigDrawer(); alert('配置已保存')">保存配置</button>
+      </div>
+    </div>
+
+<!-- ══════════════════════════════════════════════
+     模板选择弹窗 (Template Picker Modal)
+     openTemplatePicker(type, callback)
+     type: 'image' | 'text'
+     callback(item): called when user confirms selection
+     ══════════════════════════════════════════════ -->
+<div id="templatePickerModal" style="
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.45); z-index:3200;
+  align-items:center; justify-content:center;
+  animation: tplFadeIn .15s ease;
+">
+  <style>
+    @keyframes tplFadeIn { from { opacity:0 } to { opacity:1 } }
+    .tpl-picker {
+      background:#fff; border-radius:16px; width:600px;
+      max-width:calc(100vw - 40px); max-height:calc(100vh - 80px);
+      display:flex; flex-direction:column;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    }
+    .tpl-picker-head {
+      padding:18px 24px 14px;
+      border-bottom:1px solid var(--bd);
+      display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+    }
+    .tpl-picker-title { font-size:15px; font-weight:700; color:var(--tx1) }
+    .tpl-picker-close {
+      width:30px; height:30px; border-radius:50%;
+      border:1px solid var(--bd); background:transparent;
+      cursor:pointer; font-size:15px; display:flex;
+      align-items:center; justify-content:center; color:var(--tx2);
+    }
+    .tpl-picker-close:hover { border-color:var(--rd); color:var(--rd) }
+    .tpl-picker-tabs {
+      display:flex; gap:0; padding:0 24px;
+      border-bottom:2px solid var(--bd); flex-shrink:0;
+    }
+    .tpl-picker-tab {
+      padding:10px 18px; font-size:13px; font-weight:500;
+      color:var(--tx2); cursor:pointer;
+      border-bottom:2px solid transparent; margin-bottom:-2px;
+      transition:all .12s;
+    }
+    .tpl-picker-tab:hover { color:var(--tx1) }
+    .tpl-picker-tab.on { color:var(--p); font-weight:600; border-bottom-color:var(--p) }
+    .tpl-picker-body { flex:1; overflow-y:auto; padding:18px 24px }
+    .tpl-picker-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+      gap:12px;
+    }
+    /* Image template pick card */
+    .tpl-pick-card {
+      border:2px solid var(--bd); border-radius:10px;
+      overflow:hidden; cursor:pointer; transition:all .15s;
+      background:#fff;
+    }
+    .tpl-pick-card:hover { border-color:var(--pm); box-shadow:0 2px 10px rgba(124,92,252,.1) }
+    .tpl-pick-card.selected { border-color:var(--p); background:var(--pl) }
+    .tpl-pick-strip {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:2px;
+      padding:8px 8px 0;
+    }
+    .tpl-pick-thumb {
+      aspect-ratio:3/4; border-radius:4px; overflow:hidden;
+      background:var(--bd); display:flex; align-items:center; justify-content:center;
+      font-size:14px; color:var(--txm);
+    }
+    .tpl-pick-thumb img { width:100%; height:100%; object-fit:cover }
+    .tpl-pick-info { padding:8px 10px }
+    .tpl-pick-name {
+      font-size:12px; font-weight:600; color:var(--tx1);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px;
+    }
+    .tpl-pick-meta { font-size:10px; color:var(--txm) }
+    /* Text template pick row */
+    .tpl-pick-row {
+      border:2px solid var(--bd); border-radius:10px;
+      padding:12px 14px; cursor:pointer; transition:all .15s;
+      margin-bottom:8px;
+    }
+    .tpl-pick-row:hover { border-color:var(--pm) }
+    .tpl-pick-row.selected { border-color:var(--p); background:var(--pl) }
+    .tpl-pick-row-name { font-size:13px; font-weight:600; margin-bottom:4px }
+    .tpl-pick-row-preview {
+      font-size:11px; color:var(--tx2); line-height:1.6;
+      display:-webkit-box; -webkit-line-clamp:2; line-clamp:2;
+      -webkit-box-orient:vertical; overflow:hidden; white-space:pre-wrap;
+    }
+    .tpl-picker-foot {
+      padding:14px 24px; border-top:1px solid var(--bd);
+      display:flex; justify-content:flex-end; gap:10px; flex-shrink:0;
+    }
+    .tpl-empty {
+      text-align:center; padding:50px 20px;
+      font-size:13px; color:var(--txm);
+    }
+    .tpl-empty-icon { font-size:32px; margin-bottom:8px }
+  </style>
+  <div class="tpl-picker">
+    <div class="tpl-picker-head">
+      <div class="tpl-picker-title">从模板库选择</div>
+      <button class="tpl-picker-close" onclick="closeTemplatePicker()">✕</button>
+    </div>
+    <div class="tpl-picker-tabs">
+      <div class="tpl-picker-tab" id="pickerTabImage" onclick="switchPickerTab('image')">图片模板</div>
+      <div class="tpl-picker-tab" id="pickerTabText" onclick="switchPickerTab('text')">文字模板</div>
+    </div>
+    <div class="tpl-picker-body" id="pickerBody"></div>
+    <div class="tpl-picker-foot">
+      <button class="btn-g" onclick="closeTemplatePicker()">取消</button>
+      <button class="btn-p" id="pickerConfirmBtn" onclick="confirmTemplatePick()">确认选用</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── TEMPLATE DATA (shared with picker) ── */
+  const _tplImageData = [
+    { id:'it1', name:'品牌粉底液主图系列', images:['https://picsum.photos/seed/t1a/150/200','https://picsum.photos/seed/t1b/150/200','https://picsum.photos/seed/t1c/150/200','https://picsum.photos/seed/t1d/150/200','https://picsum.photos/seed/t1e/150/200','https://picsum.photos/seed/t1f/150/200'], uploadedAt:'2025-02-18' },
+    { id:'it2', name:'618 大促通用竖版', images:['https://picsum.photos/seed/t2a/150/200','https://picsum.photos/seed/t2b/150/200','https://picsum.photos/seed/t2c/150/200'], uploadedAt:'2025-02-10' },
+    { id:'it3', name:'学习机产品详情页', images:['https://picsum.photos/seed/t3a/150/200','https://picsum.photos/seed/t3b/150/200','https://picsum.photos/seed/t3c/150/200','https://picsum.photos/seed/t3d/150/200','https://picsum.photos/seed/t3e/150/200','https://picsum.photos/seed/t3f/150/200','https://picsum.photos/seed/t3g/150/200'], uploadedAt:'2025-01-28' },
+    { id:'it4', name:'护肤日常种草版式', images:['https://picsum.photos/seed/t4a/150/200','https://picsum.photos/seed/t4b/150/200'], uploadedAt:'2025-01-15' },
+    { id:'it5', name:'宠物用品清单卡片', images:['https://picsum.photos/seed/t5a/150/200','https://picsum.photos/seed/t5b/150/200','https://picsum.photos/seed/t5c/150/200','https://picsum.photos/seed/t5d/150/200'], uploadedAt:'2025-01-05' },
+  ];
+  const _tplTextData = [
+    { id:'tt1', name:'小红书种草通用结构', content:'开头：制造共鸣场景（1-2 句）\n中间：3 个产品卖点逐一展开，搭配使用体验\n结尾：给读者的建议 + 呼吁互动\n\n话题标签：#好物推荐 #XXX测评 #真实使用感受' },
+    { id:'tt2', name:'产品评测长文模板', content:'# 开箱\n简短描述外包装与第一印象\n\n# 上手体验\n核心功能的实测过程与感受\n\n# 优缺点总结\n优点：…\n缺点：…' },
+    { id:'tt3', name:'节气营销文案框架', content:'主题：[节气名] × [品牌/产品]\n\n开篇：节气意境描写（2-3 句）\n转折：自然关联品牌场景\n核心信息：活动/产品亮点 1-2 点\n收尾：情感共鸣句 + 呼吁' },
+    { id:'tt4', name:'干货列表型笔记', content:'标题：数字 + 核心关键词（如「7个让你...的方法」）\n\n正文结构：\n1. 小标题（加粗）+ 2-3 行说明\n2. 小标题 + 2-3 行说明\n…（重复 5-8 条）\n\n结尾：总结一句话 + 引导收藏' },
+    { id:'tt5', name:'直播带货预热文案', content:'📢 直播预告\n时间：[日期] [时间]\n\n本场亮点：\n✅ 产品 A — 直播价 XX 元\n✅ 产品 B — 限量福袋\n\n记得设置提醒！' },
+  ];
+
+  let _pickerTab = 'image';
+  let _pickerSelected = null;
+  let _pickerCallback = null;
+
+  function openTemplatePicker(type, callback) {
+    _pickerTab = type || 'image';
+    _pickerSelected = null;
+    _pickerCallback = callback || null;
+    const modal = document.getElementById('templatePickerModal');
+    modal.style.display = 'flex';
+    switchPickerTab(_pickerTab);
+  }
+
+  function closeTemplatePicker() {
+    document.getElementById('templatePickerModal').style.display = 'none';
+    _pickerSelected = null;
+  }
+
+  function switchPickerTab(tab) {
+    _pickerTab = tab;
+    _pickerSelected = null;
+    document.getElementById('pickerTabImage').classList.toggle('on', tab === 'image');
+    document.getElementById('pickerTabText').classList.toggle('on', tab === 'text');
+    renderPickerBody();
+  }
+
+  function renderPickerBody() {
+    const body = document.getElementById('pickerBody');
+    if (_pickerTab === 'image') {
+      if (!_tplImageData.length) {
+        body.innerHTML = '<div class="tpl-empty"><div class="tpl-empty-icon">🖼️</div>暂无图片模板，请先前往模板库上传</div>';
+        return;
+      }
+      body.innerHTML = '<div class="tpl-picker-grid">' +
+        _tplImageData.map(t => {
+          const shown = t.images.slice(0,3);
+          const extra = t.images.length - 3;
+          const thumbs = shown.map(s => `<div class="tpl-pick-thumb"><img src="${s}" loading="lazy"></div>`).join('');
+          const morePill = extra > 0 ? `<div class="tpl-pick-thumb" style="background:var(--pl);color:var(--p);font-size:11px;font-weight:700">+${extra}</div>` : '';
+          return `<div class="tpl-pick-card" id="pick-${t.id}" onclick="selectPickerItem('${t.id}')">
+            <div class="tpl-pick-strip">${thumbs}${morePill}</div>
+            <div class="tpl-pick-info">
+              <div class="tpl-pick-name">${t.name}</div>
+              <div class="tpl-pick-meta">🖼️ ${t.images.length} 张 · ${t.uploadedAt}</div>
+            </div>
+          </div>`;
+        }).join('') + '</div>';
+    } else {
+      if (!_tplTextData.length) {
+        body.innerHTML = '<div class="tpl-empty"><div class="tpl-empty-icon">📝</div>暂无文字模板，请先前往模板库保存</div>';
+        return;
+      }
+      body.innerHTML = _tplTextData.map(t =>
+        `<div class="tpl-pick-row" id="pick-${t.id}" onclick="selectPickerItem('${t.id}')">
+          <div class="tpl-pick-row-name">${t.name}</div>
+          <div class="tpl-pick-row-preview">${t.content}</div>
+        </div>`
+      ).join('');
+    }
+  }
+
+  function selectPickerItem(id) {
+    document.querySelectorAll('.tpl-pick-card, .tpl-pick-row').forEach(el => el.classList.remove('selected'));
+    const el = document.getElementById('pick-' + id);
+    if (el) el.classList.add('selected');
+    _pickerSelected = (_pickerTab === 'image' ? _tplImageData : _tplTextData).find(t => t.id === id);
+  }
+
+  function confirmTemplatePick() {
+    if (!_pickerSelected) { alert('请先选择一个模板'); return; }
+    if (_pickerCallback) _pickerCallback(_pickerSelected);
+    closeTemplatePicker();
+  }
+
+  /* close on overlay click */
+  document.getElementById('templatePickerModal').addEventListener('click', function(e) {
+    if (e.target === this) closeTemplatePicker();
+  });
+
+  function applyImageTemplate(skillKey, tpl) {
+    const appliedEl = document.getElementById(skillKey + '-img-applied');
+    const nameEl = document.getElementById(skillKey + '-img-applied-name');
+    if (appliedEl && nameEl) {
+      nameEl.textContent = '已选用：' + tpl.name + '（' + tpl.images.length + ' 张）';
+      appliedEl.style.display = 'flex';
+    }
+  }
+
+  function clearImageTemplate(skillKey) {
+    const appliedEl = document.getElementById(skillKey + '-img-applied');
+    if (appliedEl) appliedEl.style.display = 'none';
+  }
+</script>
+
+</body>
+
+</html>

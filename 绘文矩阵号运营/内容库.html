@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>内容库 - 矩阵号运营</title>
+  <link rel="stylesheet" href="design-tokens.css">
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .sb {
+      width: var(--sidebar-width);
+      background: var(--color-bg-card);
+      border-right: 1px solid var(--color-border);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+    }
+    .sb-header { padding: var(--spacing-4) var(--spacing-4) var(--spacing-3); border-bottom: 1px solid var(--color-border) }
+    .sb-back {
+      display: flex; align-items: center; gap: var(--spacing-2);
+      font: var(--font-body-s); color: var(--color-text-3); cursor: pointer;
+      margin-bottom: var(--spacing-3); transition: color .12s;
+    }
+    .sb-back:hover { color: var(--color-brand) }
+    .sb-brand { display: flex; align-items: center; gap: var(--spacing-3) }
+    .sb-brand-ic {
+      width: 32px; height: 32px;
+      background: var(--grad); border-radius: var(--radius-l);
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .sb-brand-name { font: var(--font-title-s); font-weight: 700; line-height: 1.2; color: var(--color-text-1) }
+    .sb-brand-sub { font: var(--font-body-s); color: var(--color-text-3); margin-top: 1px }
+    .sb-nav { padding: var(--spacing-3); flex: 1; overflow-y: auto }
+    .nav-group { margin-bottom: var(--spacing-2) }
+    .nav-group-label {
+      font: var(--font-body-s); color: var(--color-text-3);
+      padding: var(--spacing-2) var(--spacing-3) var(--spacing-1); letter-spacing: .04em; font-weight: 500;
+      text-transform: uppercase;
+    }
+    .ni {
+      display: flex; align-items: center; gap: var(--spacing-3);
+      padding: var(--spacing-2) var(--spacing-3); border-radius: var(--radius-m);
+      color: var(--color-text-2); cursor: pointer; margin-bottom: 1px;
+      font: var(--font-body-m); transition: all .12s; position: relative;
+      text-decoration: none;
+    }
+    .ni:hover { background: var(--color-bg); color: var(--color-text-1) }
+    .ni.on { background: var(--color-brand-light); color: var(--color-brand); font-weight: 600 }
+    .ni.on::before {
+      content: ''; position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 3px; height: 18px;
+      background: var(--color-brand); border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    }
+    .nic { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0 }
+    .nbadge {
+      margin-left: auto; background: var(--color-danger); color: var(--color-text-inv);
+      font: var(--font-body-s); padding: 1px 5px; border-radius: var(--radius-full); font-weight: 600;
+    }
+    .nbadge.or { background: var(--color-warning) }
+    .nbadge.gr { background: var(--color-success) }
+    .sb-footer { padding: var(--spacing-3) var(--spacing-4); border-top: 1px solid var(--color-border) }
+    .sf-account {
+      display: flex; align-items: center; gap: var(--spacing-3);
+      padding: var(--spacing-2) var(--spacing-3); border-radius: var(--radius-m); cursor: pointer;
+      transition: background .12s;
+    }
+    .sf-account:hover { background: var(--color-bg) }
+    .sf-av {
+      width: 28px; height: 28px; border-radius: var(--radius-full);
+      background: var(--grad);
+      display: flex; align-items: center; justify-content: center;
+      font: var(--font-body-s); font-weight: 700; color: var(--color-brand);
+    }
+    .sf-name { font: var(--font-body-m); font-weight: 500; flex: 1; color: var(--color-text-1) }
+    .sf-plan {
+      font: var(--font-body-s); color: var(--color-brand); background: var(--color-brand-light);
+      padding: 1px 6px; border-radius: var(--radius-full); font-weight: 600;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .main { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; min-height: 100vh }
+    .topbar {
+      height: 56px; background: var(--color-bg-card); border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 var(--spacing-7); position: sticky; top: 0; z-index: 5;
+    }
+    .tb-breadcrumb { display: flex; align-items: center; gap: var(--spacing-2); font: var(--font-body-m); color: var(--color-text-2) }
+    .tb-breadcrumb span { cursor: pointer }
+    .tb-breadcrumb span:hover { color: var(--color-brand) }
+    .tb-breadcrumb .cur { color: var(--color-text-1); font-weight: 600; cursor: default }
+    .content { padding: var(--spacing-6) var(--spacing-7); flex: 1 }
+
+    /* ── BUTTONS ── */
+    .btn-p {
+      background: var(--color-brand);
+      color: var(--color-text-inv);
+      border: none;
+      padding: var(--spacing-btn-v) var(--spacing-4);
+      border-radius: var(--radius-s);
+      font: var(--font-label);
+      cursor: pointer;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-2);
+    }
+
+    .btn-p:hover {
+      background: var(--color-brand-hover);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .btn-p:active {
+      background: var(--color-brand-pressed);
+    }
+
+    .btn-g {
+      background: var(--color-bg-card);
+      color: var(--color-text-1);
+      border: 1px solid var(--color-border);
+      padding: var(--spacing-btn-v) var(--spacing-4);
+      border-radius: var(--radius-s);
+      font: var(--font-label);
+      cursor: pointer;
+      transition: all .12s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-2);
+    }
+
+    .btn-g:hover {
+      border-color: var(--color-brand-mid);
+      color: var(--color-brand);
+      background: var(--color-brand-light);
+    }
+
+    /* ── PAGE TABS (单篇资产 / 矩阵批次) ── */
+    .page-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--bd);
+      margin-bottom: 20px;
+      gap: 0;
+    }
+    .page-tab {
+      padding: 10px 20px;
+      font-size: 14px; font-weight: 500;
+      color: var(--tx2); cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all .15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .page-tab:hover { color: var(--tx1) }
+    .page-tab.on { color: var(--p); font-weight: 600; border-bottom-color: var(--p) }
+    .page-tab-count {
+      font: var(--font-body-s); background: var(--pl); color: var(--p);
+      padding: 1px 7px; border-radius: var(--radius-full); font-weight: 700;
+    }
+    .page-tab.on .page-tab-count { background: var(--p); color: #fff }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .search-wrap {
+      position: relative; flex: 0 0 220px;
+    }
+    .search-wrap input {
+      width: 100%; padding: 8px 12px 8px 34px;
+      border: 1px solid var(--bd); border-radius: 8px;
+      font-size: 13px; font-family: inherit; background: var(--wh);
+      transition: border-color .12s; color: var(--tx1);
+    }
+    .search-wrap input:focus { outline: none; border-color: var(--p) }
+    .search-wrap::before {
+      content: '🔍'; position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%); font-size: 13px; pointer-events: none;
+    }
+    .filter-select {
+      padding: 8px 28px 8px 12px;
+      border: 1px solid var(--bd); border-radius: 8px;
+      font-size: 13px; font-family: inherit; background: var(--wh);
+      color: var(--tx1); cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A0A8B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      transition: border-color .12s;
+    }
+    .filter-select:focus { outline: none; border-color: var(--p) }
+    .filter-divider { width: 1px; height: 20px; background: var(--bd); flex-shrink: 0 }
+
+    /* searchable batch picker */
+    .batch-search-wrap {
+      position: relative; display: none;
+    }
+    .batch-search-wrap.visible { display: block }
+    .batch-search-wrap input {
+      padding: 8px 32px 8px 12px;
+      border: 1px solid var(--bd); border-radius: 8px;
+      font-size: 13px; font-family: inherit; background: var(--wh);
+      color: var(--tx1); width: 220px; transition: border-color .12s;
+    }
+    .batch-search-wrap input:focus { outline: none; border-color: var(--p) }
+    .batch-search-wrap .clear-btn {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      font-size: 14px; color: var(--txm); cursor: pointer; display: none;
+      background: none; border: none; line-height: 1;
+    }
+    .batch-search-wrap .clear-btn.visible { display: block }
+    .batch-search-wrap .clear-btn:hover { color: var(--rd) }
+    /* active filter indicator on the input */
+    .batch-search-wrap input.filtered { border-color: var(--p); background: var(--pl) }
+
+
+    /* ── CONTENT GRID ── */
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── ASSET CARD ── */
+    .asset-card {
+      background: var(--wh);
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+    .asset-card:hover {
+      border-color: var(--pm);
+      box-shadow: 0 4px 16px rgba(124, 92, 252, 0.10);
+      transform: translateY(-2px);
+    }
+
+    /* Cover */
+    .card-cover {
+      height: 120px;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-cover img { width: 100%; height: 100%; object-fit: cover }
+    .card-cover-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+    }
+    .card-type-badge {
+      position: absolute; top: 8px; right: 8px;
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 6px;
+      background: rgba(26,26,46,0.55); color: #fff;
+      backdrop-filter: blur(4px);
+    }
+
+    /* Body */
+    .card-body { padding: 12px }
+    .card-title {
+      font-size: 13px; font-weight: 600; line-height: 1.45;
+      color: var(--tx1);
+      line-clamp: 2;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+      height: 38px; margin-bottom: 10px;
+    }
+    .card-meta {
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .card-meta-row {
+      display: flex; align-items: center; gap: 5px;
+      font: var(--font-body-s); color: var(--tx2);
+    }
+    .card-meta-row .ic { font-size: 12px; flex-shrink: 0 }
+    .card-meta-row .val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+    .card-meta-row .val.muted { color: var(--txm) }
+
+    /* Source badge */
+    .source-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .source-badge.manual { background: var(--grl); color: var(--gr) }
+    .source-badge.from-main { background: var(--tl); color: var(--t) }
+    .source-badge.matrix { background: var(--pl); color: var(--p) }
+
+    /* Platform pill */
+    .platform-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; padding: 2px 7px; border-radius: 5px;
+      font-weight: 500; flex-shrink: 0;
+    }
+    .platform-pill.xhs { background: #FFEEF0; color: #E1303E }
+    .platform-pill.gzh { background: #E8F7F0; color: #07C160 }
+    .platform-pill.dy { background: #F0F0F0; color: #161823 }
+
+    /* Card separator */
+    .card-body-sep {
+      height: 1px; background: var(--bd); margin: 10px 0;
+    }
+
+    /* ── MATRIX BATCH ACCORDION ── */
+    .batch-group {
+      border: 1px solid var(--bd); border-radius: 12px;
+      margin-bottom: 10px; overflow: hidden;
+      background: var(--wh);
+      transition: box-shadow .15s;
+    }
+    .batch-group:hover { box-shadow: 0 2px 10px rgba(0,0,0,.06) }
+    .batch-group.open { box-shadow: 0 4px 16px rgba(124,92,252,.08); border-color: var(--pm) }
+
+    /* Collapsed row / clickable header */
+    .batch-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px; cursor: pointer;
+      user-select: none;
+    }
+    .batch-row:hover { background: var(--bg) }
+    .batch-group.open .batch-row { background: var(--pl); border-bottom: 1px solid var(--bd) }
+
+    .batch-chevron {
+      font: var(--font-body-s); color: var(--txm); flex-shrink: 0;
+      transition: transform .2s;
+      width: 16px; text-align: center;
+    }
+    .batch-group.open .batch-chevron { transform: rotate(90deg) }
+
+    .batch-row-main { flex: 1; min-width: 0 }
+    .batch-row-name {
+      font-size: 13px; font-weight: 700; color: var(--tx1);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .batch-row-meta {
+      font: var(--font-body-s); color: var(--txm); margin-top: 2px;
+    }
+
+    /* Thumbnail strip */
+    .batch-thumbs {
+      display: flex; gap: 5px; align-items: center; flex-shrink: 0;
+    }
+    .batch-thumb {
+      width: 44px; height: 44px; border-radius: 6px;
+      background: var(--bg); overflow: hidden; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; border: 1px solid var(--bd);
+    }
+    .batch-thumb img { width: 100%; height: 100%; object-fit: cover }
+    .batch-thumb-more {
+      width: 44px; height: 44px; border-radius: 6px;
+      background: var(--pl); color: var(--p);
+      display: flex; align-items: center; justify-content: center;
+      font: var(--font-body-s); font-weight: 700; flex-shrink: 0;
+    }
+
+    /* Count pill */
+    .batch-count-pill {
+      flex-shrink: 0;
+      font-size: 12px; font-weight: 700;
+      background: var(--pl); color: var(--p);
+      padding: 3px 10px; border-radius: 20px;
+    }
+
+    /* Expanded content area */
+    .batch-content {
+      display: none; padding: 16px 18px 18px;
+    }
+    .batch-group.open .batch-content { display: block }
+
+    /* ── DETAIL DRAWER ── */
+    .drawer-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 200; background: rgba(0,0,0,.3);
+      display: none; animation: fadeIn .15s ease;
+    }
+    .drawer-overlay.open { display: block }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+    .drawer {
+      position: fixed; top: 0; right: -540px; bottom: 0;
+      width: 520px; background: var(--wh);
+      box-shadow: -8px 0 32px rgba(0,0,0,.12);
+      z-index: 201; display: flex; flex-direction: column;
+      transition: right .3s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { right: 0 }
+
+    .drawer-head {
+      padding: 18px 24px; border-bottom: 1px solid var(--bd);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .drawer-head-left { display: flex; align-items: center; gap: 10px }
+    .drawer-head-title { font-size: 15px; font-weight: 700 }
+    .drawer-close {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid var(--bd); background: transparent;
+      cursor: pointer; font-size: 16px; display: flex;
+      align-items: center; justify-content: center; color: var(--tx2);
+    }
+    .drawer-close:hover { border-color: var(--p); color: var(--p) }
+
+    .drawer-nav {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .drawer-nav-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1px solid var(--bd); background: transparent;
+      cursor: pointer; font-size: 14px; display: flex;
+      align-items: center; justify-content: center;
+      color: var(--tx2); transition: all .12s;
+    }
+    .drawer-nav-btn:hover { border-color: var(--p); color: var(--p) }
+    .drawer-nav-count { font-size: 12px; color: var(--txm) }
+
+    .drawer-body { flex: 1; overflow-y: auto; padding: 22px 24px }
+
+    .drawer-cover {
+      width: 100%; height: 200px;
+      border-radius: 10px; overflow: hidden;
+      background: var(--bg); margin-bottom: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px; flex-shrink: 0;
+    }
+    .drawer-cover img { width: 100%; height: 100%; object-fit: cover }
+
+    .drawer-title { font-size: 17px; font-weight: 700; line-height: 1.4; margin-bottom: 14px }
+
+    .drawer-attrs {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+    }
+
+    .drawer-section-title {
+      font-size: 12px; font-weight: 700; color: var(--txm);
+      letter-spacing: .04em; text-transform: uppercase;
+      margin: 20px 0 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .drawer-section-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--bd);
+    }
+
+    .drawer-body-text {
+      font-size: 13px; line-height: 1.8; color: var(--tx1);
+      white-space: pre-wrap; background: var(--bg);
+      padding: 14px 16px; border-radius: 8px;
+    }
+
+    .drawer-attribution {
+      background: var(--bg); border-radius: 10px;
+      padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .attr-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px;
+    }
+    .attr-label { color: var(--txm); font-weight: 500 }
+    .attr-val { color: var(--tx1); font-weight: 500; text-align: right }
+
+    .drawer-foot {
+      padding: 14px 24px; border-top: 1px solid var(--bd);
+      display: flex; gap: 10px; background: #fafafa; flex-shrink: 0;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center; padding: 80px 20px; color: var(--tx2);
+    }
+    .empty-state .ic { font-size: 40px; margin-bottom: 12px }
+    .empty-state .title { font-size: 15px; font-weight: 600; margin-bottom: 6px }
+    .empty-state .sub { font-size: 13px; color: var(--txm) }
+
+    /* ── RESULT COUNT ── */
+    .result-count {
+      font-size: 12px; color: var(--txm); margin-bottom: 16px;
+    }
+    .result-count b { color: var(--tx1); font-weight: 600 }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sb">
+  <div class="sb-header">
+    <div class="sb-back" onclick="history.back()">← 返回讯飞绘文</div>
+    <div class="sb-brand">
+      <div class="sb-brand-ic">⚡</div>
+      <div>
+        <div class="sb-brand-name">矩阵号运营</div>
+        <div class="sb-brand-sub">47 个账号 · Pro 版</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-group">
+      <div class="ni" onclick="location.href='矩阵号运营_landing_page.html'"><span class="nic">🏠</span>工作台</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">内容生产</div>
+      <div class="ni" onclick="location.href='批量任务_全量页.html'"><span class="nic">⚡</span>批量任务<span class="nbadge or">5</span></div>
+      <div class="ni"><span class="nic">✨</span>Skill 广场</div>
+      <div class="ni on"><span class="nic">🗂️</span>内容库<span class="nbadge gr">347</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">账号管理</div>
+      <div class="ni"><span class="nic">👥</span>账号列表<span class="nbadge" style="background:var(--rd)">3</span></div>
+      <div class="ni"><span class="nic">🗂️</span>分组管理</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">互动与数据</div>
+      <div class="ni"><span class="nic">💬</span>评论与私信<span class="nbadge">12</span></div>
+      <div class="ni"><span class="nic">📈</span>数据看板</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">设置</div>
+      <div class="ni"><span class="nic">⚙️</span>审核规则</div>
+      <div class="ni"><span class="nic">🔔</span>通知设置</div>
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div class="sf-account">
+      <div class="sf-av">呦</div>
+      <div class="sf-name">呦呦</div>
+      <div class="sf-plan">Pro</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+  <div class="topbar">
+    <div class="tb-breadcrumb">
+      <span onclick="location.href='矩阵号运营_landing_page.html'">工作台</span>
+      <span style="color:var(--bd)">›</span>
+      <span class="cur">内容库</span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-g" onclick="alert('批量管理：可多选后批量复用或导出')">批量管理</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- PAGE TABS -->
+    <div class="page-tabs">
+      <div class="page-tab" id="tab-single" onclick="switchTab('single')">
+        单篇资产
+        <span class="page-tab-count">118</span>
+      </div>
+      <div class="page-tab on" id="tab-matrix" onclick="switchTab('matrix')">
+        矩阵批次
+        <span class="page-tab-count">229</span>
+      </div>
+    </div>
+
+    <!-- FILTER BAR (共用) -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <input type="text" placeholder="搜索标题关键词…" oninput="handleSearch(this.value)">
+      </div>
+      <select class="filter-select" onchange="handleFilter()">
+        <option value="">全部平台</option>
+        <option>小红书</option>
+        <option>公众号</option>
+        <option>抖音</option>
+        <option>视频号</option>
+      </select>
+      <!-- batch-only: searchable picker (shown only in 矩阵批次 tab) -->
+      <div class="batch-search-wrap" id="batchSearchWrap">
+        <input type="text" id="batchSearchInput" list="batchList"
+          placeholder="🔎 筛选批次任务…"
+          oninput="handleBatchSearch(this.value)"
+          onchange="handleBatchSearchSelect(this.value)">
+        <datalist id="batchList"></datalist>
+        <button class="clear-btn" id="batchClearBtn" onclick="clearBatchFilter()" title="清除筛选">✕</button>
+      </div>
+      <div class="filter-divider"></div>
+      <select class="filter-select" onchange="handleFilter()">
+        <option>更新时间 ↓</option>
+        <option>创建时间 ↓</option>
+      </select>
+    </div>
+
+    <div class="result-count" id="resultCount"></div>
+
+    <!-- SINGLE TAB CONTENT -->
+    <div id="panel-single" style="display:none">
+      <div class="asset-grid" id="grid-single"></div>
+    </div>
+
+    <!-- MATRIX TAB CONTENT -->
+    <div id="panel-matrix">
+      <div id="grid-matrix"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ── DETAIL DRAWER ── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="detailDrawer">
+  <div class="drawer-head">
+    <div class="drawer-head-left">
+      <div class="drawer-nav">
+        <button class="drawer-nav-btn" onclick="navDrawer(-1)">‹</button>
+        <span class="drawer-nav-count" id="drawerNavCount">1 / 8</span>
+        <button class="drawer-nav-btn" onclick="navDrawer(1)">›</button>
+      </div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot">
+    <button class="btn-g" style="flex:1" onclick="alert('导出此内容为 TXT + 图片 ZIP')">导出</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const singleAssets = [
+  {
+    id: 's1', type: '轻图文', source: 'manual',
+    title: '如何给孩子挑选合适的学习机？这4个关键点比品牌更重要！',
+    cover: 'https://picsum.photos/seed/edu1/400/300',
+    platform: 'xhs', platformName: '小红书',
+    account: '@优优学习日记',
+    publishedAt: '2025-10-12',
+    updatedAt: '10月12日',
+    body: '现在市面上学习机这么多，品牌、价格、功能各有千秋，选起来真的头疼！\n\n作为一个用过3款学习机的妈妈，我整理了4个挑选关键点：\n\n① 内容资源是否正版授权\n② 护眼屏幕参数（蓝光过滤+硬件防蓝光两者兼备）\n③ AI陪伴功能是否真实有效\n④ 系统是否可管控（防止孩子绕过管控玩游戏）\n\n具体对比我放在评论区了，需要的宝妈直接拿！'
+  },
+  {
+    id: 's2', type: '轻图文', source: 'from-main',
+    title: '在书海中，遇见更好的自己✨',
+    cover: 'https://picsum.photos/seed/book2/400/300',
+    platform: 'xhs', platformName: '小红书',
+    account: '@诗意宇宙的心理学',
+    publishedAt: '2025-09-21',
+    updatedAt: '9月21日',
+    body: '最近沉迷于《被讨厌的勇气》，每次翻开都有新的收获。\n\n书里有句话让我印象深刻：「一切烦恼都来自于人际关系。」\n\n但解决烦恼的方式，不是逃离，而是拥有「被讨厌的勇气」，真正活在当下，为自己而活。\n\n你最近在看什么书？评论区分享一下吧～'
+  },
+  {
+    id: 's3', type: '千字长文', source: 'manual',
+    title: '一个人旅行的100个建议，写给第一次出门的你',
+    cover: '',
+    platform: 'gzh', platformName: '公众号',
+    account: '@呦呦的咖啡馆',
+    publishedAt: '2025-09-01',
+    updatedAt: '9月1日',
+    body: '第一次一个人旅行，我24岁。\n\n那是个周五下午，我买了一张去厦门的火车票，没有告诉任何人。带了一本书，一个耳机，和一颗不知道该如何安放的心。\n\n那次旅行改变了我。不是因为遇到了什么，而是因为第一次发现，我可以和自己相处得很好。\n\n写下这100条，给每一个想出发却还没出发的你。'
+  },
+  {
+    id: 's4', type: '轻图文', source: 'from-main',
+    title: '打工人养狗指南：上班没人陪它，怎么办？',
+    cover: 'https://picsum.photos/seed/dog4/400/300',
+    platform: 'xhs', platformName: '小红书',
+    account: '@优优学习日记',
+    publishedAt: null,
+    updatedAt: '9月9日',
+    body: '养了一只柯基之后才知道，"上班族养狗"是多大的挑战。\n\n分享几个让我们都不再孤独的小方法...'
+  },
+  {
+    id: 's5', type: '轻图文', source: 'manual',
+    title: '九寨沟秋天竟然这么美！彩林和海子的双重震撼',
+    cover: 'https://picsum.photos/seed/jiuzhai5/400/300',
+    platform: 'xhs', platformName: '小红书',
+    account: '@旅行·深度走法',
+    publishedAt: '2025-10-08',
+    updatedAt: '10月8日',
+    body: '每年九寨沟最美的时候，是10月。\n\n满山彩林，翠色的海子，还有那些被反光镜一样的湖面倒映出来的山峰...'
+  },
+  {
+    id: 's6', type: '千字长文', source: 'from-main',
+    title: '什么是好的内容创作？我做了5年自媒体总结出的方法论',
+    cover: '',
+    platform: 'gzh', platformName: '公众号',
+    account: '@呦呦的咖啡馆',
+    publishedAt: '2025-08-20',
+    updatedAt: '8月20日',
+    body: '五年前，我写了第一篇公众号文章，100个阅读。\n\n五年后，我有了50万粉丝，但我还是每天问自己同一个问题：什么是好的内容？'
+  }
+];
+
+const matrixBatches = [
+  {
+    batchId: 'task1',
+    batchName: '9月懂车帝小红书图文仿写',
+    skill: '小红书图文模板仿写',
+    createdAt: '2025-09-01',
+    items: [
+      {
+        id: 'm1', type: '轻图文',
+        title: '蔚来ET5T：家庭用车的正确答案，3个细节让我心动',
+        cover: 'https://picsum.photos/seed/car1/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@懂车帝官方01',
+        publishedAt: '2025-09-05',
+        updatedAt: '9月5日',
+        body: '最近试驾了蔚来ET5T，作为一个家里有孩子的用户来说，有三个细节真的让我心动...'
+      },
+      {
+        id: 'm1u', type: '轻图文',
+        title: '懂车帝选车：预算20万，家用SUV避坑指南（未发布示例）',
+        cover: 'https://picsum.photos/seed/car1u/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@懂车帝官方01',
+        publishedAt: null,
+        updatedAt: '9月5日',
+        body: '这篇是批量任务生成后沉淀在内容库的未发布内容示例，可用于后续复用与再次分发。'
+      },
+      {
+        id: 'm2', type: '轻图文',
+        title: '比亚迪汉EV和特斯拉Model 3，2025年怎么选？',
+        cover: 'https://picsum.photos/seed/car2/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@懂车帝官方02',
+        publishedAt: '2025-09-05',
+        updatedAt: '9月5日',
+        body: '在纯电市场里，汉EV和Model 3一直是最多人纠结的对比组合...'
+      },
+      {
+        id: 'm3', type: '轻图文',
+        title: '理想L6：这辆车的增程逻辑，我终于理解了',
+        cover: 'https://picsum.photos/seed/car3/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@懂车帝官方03',
+        publishedAt: '2025-09-06',
+        updatedAt: '9月6日',
+        body: '增程这条路，理想走得比任何人都坚定...'
+      },
+      {
+        id: 'm4', type: '轻图文',
+        title: '问界M7 Plus落地价多少？真实提车体验分享',
+        cover: 'https://picsum.photos/seed/car4/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@懂车帝官方04',
+        publishedAt: '2025-09-07',
+        updatedAt: '9月7日',
+        body: '提车一个月了，聊聊我的真实感受，不吹不黑...'
+      },
+      {
+        id: 'm5', type: '轻图文',
+        title: '极氪001：纯电轿跑的天花板，值不值得买？',
+        cover: 'https://picsum.photos/seed/car5/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@懂车帝官方05',
+        publishedAt: '2025-09-08',
+        updatedAt: '9月8日',
+        body: '极氪001这辆车，从发布到现在争议从没停过...'
+      },
+    ]
+  },
+  {
+    batchId: 'task2',
+    batchName: '10月教育好物推广',
+    skill: '小红书图文模板仿写',
+    createdAt: '2025-10-10',
+    items: [
+      {
+        id: 'm6', type: '轻图文',
+        title: '开学季必备！这款词典笔让孩子的英语成绩涨了20分',
+        cover: 'https://picsum.photos/seed/edu6/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@优优学习日记',
+        publishedAt: '2025-10-12',
+        updatedAt: '10月12日',
+        body: '分享一下我家孩子用了一个月词典笔的真实效果...'
+      },
+      {
+        id: 'm7', type: '轻图文',
+        title: '小学生专注力差怎么办？这5个训练方法亲测有效',
+        cover: 'https://picsum.photos/seed/edu7/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@成长记录·二胎妈妈',
+        publishedAt: '2025-10-13',
+        updatedAt: '10月13日',
+        body: '朋友问我孩子怎么能坐得住，我细想了想，确实有几个方法比较管用...'
+      },
+      {
+        id: 'm8', type: '轻图文',
+        title: '真实测评：5款儿童护眼台灯横向对比，附选购建议',
+        cover: 'https://picsum.photos/seed/edu8/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@优优学习日记',
+        publishedAt: '2025-10-14',
+        updatedAt: '10月14日',
+        body: '买台灯前我研究了两周，入手了5款放在家里对比...'
+      },
+    ]
+  },
+  {
+    batchId: 'task3',
+    batchName: '11月生活好物矩阵',
+    skill: '小红书一键模板创作+发布',
+    createdAt: '2025-11-01',
+    items: [
+      {
+        id: 'm9', type: '轻图文',
+        title: '双十一囤货攻略：厨房好物TOP10，主妇认证不踩雷',
+        cover: 'https://picsum.photos/seed/life9/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@生活好物组01',
+        publishedAt: '2025-11-05',
+        updatedAt: '11月5日',
+        body: '每年双十一我都要踩几个坑，今年提前整理了一份厨房好物清单...'
+      },
+      {
+        id: 'm10', type: '轻图文',
+        title: '租房党如何打造高级感客厅？500元预算的改造方案',
+        cover: 'https://picsum.photos/seed/life10/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@生活好物组02',
+        publishedAt: '2025-11-06',
+        updatedAt: '11月6日',
+        body: '不买房也能住得很好！分享我的500元改造经历...'
+      },
+      {
+        id: 'm11u', type: '轻图文',
+        title: '双十一避雷：3个“看似便宜但最不值”的厨房小电器（未发布示例）',
+        cover: 'https://picsum.photos/seed/life11u/400/300',
+        platform: 'xhs', platformName: '小红书',
+        account: '@生活好物组03',
+        publishedAt: null,
+        updatedAt: '11月6日',
+        body: '这条内容尚未发布，但作为资产沉淀在内容库，可直接复用到新的发布/生成任务。'
+      },
+    ]
+  }
+];
+
+// ── STATE ──
+let currentTab = 'matrix';
+let currentItems = [];
+let drawerIndex = 0;
+
+// ── INIT ──
+window.onload = () => {
+  switchTab('matrix');
+};
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-single').classList.toggle('on', tab === 'single');
+  document.getElementById('tab-matrix').classList.toggle('on', tab === 'matrix');
+  document.getElementById('panel-single').style.display = tab === 'single' ? 'block' : 'none';
+  document.getElementById('panel-matrix').style.display = tab === 'matrix' ? 'block' : 'none';
+  // Show/hide batch search picker
+  const bsw = document.getElementById('batchSearchWrap');
+  if (tab === 'matrix') {
+    bsw.classList.add('visible');
+    populateBatchDatalist();
+  } else {
+    bsw.classList.remove('visible');
+  }
+  if (tab === 'single') {
+    renderSingleTab();
+  } else {
+    renderMatrixTab('all');
+  }
+}
+
+function populateBatchDatalist() {
+  const dl = document.getElementById('batchList');
+  dl.innerHTML = matrixBatches.map(b =>
+    `<option value="${b.batchName}" data-id="${b.batchId}">`
+  ).join('');
+}
+
+function renderSingleTab() {
+  const grid = document.getElementById('grid-single');
+  document.getElementById('resultCount').textContent = '';
+  grid.innerHTML = singleAssets.map((a, i) => renderCard(a, i, singleAssets)).join('');
+}
+
+function renderMatrixTab(filterBatchId, autoOpenId) {
+  const container = document.getElementById('grid-matrix');
+  const batches = filterBatchId === 'all'
+    ? matrixBatches
+    : matrixBatches.filter(b => b.batchId === filterBatchId);
+
+  const totalCount = batches.reduce((s, b) => s + b.items.length, 0);
+  document.getElementById('resultCount').innerHTML =
+    `共 <b>${totalCount}</b> 条内容 · <b>${batches.length}</b> 个批次`;
+
+  // Flatten for drawer navigation (all batches, regardless of filter)
+  currentItems = batches.flatMap(b => b.items);
+
+  // First batch auto-opens when filtering to a single batch, or when autoOpenId is set
+  const defaultOpenId = autoOpenId
+    || (batches.length === 1 ? batches[0].batchId : null);
+
+  container.innerHTML = batches.map(batch => {
+    const isOpen = batch.batchId === defaultOpenId;
+    // Thumbnail strip: first 3 covers + "+N" if more
+    const thumbItems = batch.items.slice(0, 3);
+    const moreCount = batch.items.length - 3;
+    const thumbsHtml = thumbItems.map(a =>
+      `<div class="batch-thumb">${a.cover
+        ? `<img src="${a.cover}" loading="lazy">`
+        : (a.type === '千字长文' ? '📄' : '🖼️')
+      }</div>`
+    ).join('') + (moreCount > 0
+      ? `<div class="batch-thumb-more">+${moreCount}</div>`
+      : '');
+
+    const cardsHtml = batch.items.map(a =>
+      renderCard(a, currentItems.indexOf(a), currentItems)
+    ).join('');
+
+    return `
+      <div class="batch-group${isOpen ? ' open' : ''}" id="bg-${batch.batchId}">
+        <div class="batch-row" onclick="toggleBatch('${batch.batchId}')">
+          <span class="batch-chevron">▶</span>
+          <div class="batch-row-main">
+            <div class="batch-row-name">${batch.batchName}</div>
+            <div class="batch-row-meta">Skill · ${batch.skill} &nbsp;·&nbsp; 创建于 ${batch.createdAt}</div>
+          </div>
+          <div class="batch-thumbs">${thumbsHtml}</div>
+          <div class="batch-count-pill">${batch.items.length} 篇</div>
+        </div>
+        <div class="batch-content">
+          <div class="asset-grid">${cardsHtml}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleBatch(batchId) {
+  const el = document.getElementById('bg-' + batchId);
+  el.classList.toggle('open');
+}
+
+function renderCard(a, idx, list) {
+  const coverHtml = a.cover
+    ? `<img src="${a.cover}" alt="" loading="lazy">`
+    : `<div class="card-cover-placeholder">${a.type === '千字长文' ? '📄' : '🖼️'}</div>`;
+
+  const sourceBadge = a.source === 'manual'
+    ? `<span class="source-badge manual">手动创作</span>`
+    : a.source === 'from-main'
+    ? `<span class="source-badge from-main">来自绘文</span>`
+    : '';
+
+  const platformBadge = `<span class="platform-pill ${a.platform}">${a.platformName}</span>`;
+
+  const publishLine = a.publishedAt
+    ? `<div class="card-meta-row"><span class="ic">📅</span><span class="val muted">发布于 ${a.publishedAt}</span></div>`
+    : `<div class="card-meta-row"><span class="ic">🗃️</span><span class="val muted">未发布 · 已沉淀（可复用）</span></div>`;
+
+  return `
+    <div class="asset-card" onclick="openDrawer(${idx})">
+      <div class="card-cover">
+        ${coverHtml}
+        <div class="card-type-badge">${a.type}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${a.title}</div>
+        <div class="card-meta">
+          <div class="card-meta-row">
+            ${platformBadge}
+            <span class="val" style="color:var(--tx2)">${a.account}</span>
+          </div>
+          ${publishLine}
+          <div class="card-body-sep"></div>
+          <div class="card-meta-row" style="justify-content:flex-end">
+            <span class="val muted">${a.updatedAt}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── BATCH SEARCH FILTER ──
+let activeBatchId = 'all';
+
+function handleBatchSearch(val) {
+  // Show clear button while typing
+  document.getElementById('batchClearBtn').classList.toggle('visible', val.length > 0);
+}
+
+function handleBatchSearchSelect(val) {
+  // Try to match the typed/selected value to a batch name
+  const match = matrixBatches.find(b =>
+    b.batchName === val || b.batchId === val
+  );
+  if (match) {
+    activeBatchId = match.batchId;
+    document.getElementById('batchSearchInput').classList.add('filtered');
+    document.getElementById('batchClearBtn').classList.add('visible');
+    renderMatrixTab(match.batchId, match.batchId);
+  } else if (val === '' || val === '全部批次任务') {
+    clearBatchFilter();
+  }
+}
+
+function clearBatchFilter() {
+  activeBatchId = 'all';
+  document.getElementById('batchSearchInput').value = '';
+  document.getElementById('batchSearchInput').classList.remove('filtered');
+  document.getElementById('batchClearBtn').classList.remove('visible');
+  renderMatrixTab('all');
+}
+
+// ── DRAWER ──
+function openDrawer(idx) {
+  if (currentTab === 'single') currentItems = singleAssets;
+  drawerIndex = idx;
+  renderDrawer();
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('detailDrawer').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('detailDrawer').classList.remove('open');
+}
+
+function navDrawer(dir) {
+  drawerIndex = Math.max(0, Math.min(currentItems.length - 1, drawerIndex + dir));
+  renderDrawer();
+}
+
+function renderDrawer() {
+  const a = currentItems[drawerIndex];
+  if (!a) return;
+  document.getElementById('drawerNavCount').textContent = `${drawerIndex + 1} / ${currentItems.length}`;
+
+  const coverHtml = a.cover
+    ? `<img src="${a.cover}" alt="" style="width:100%;height:100%;object-fit:cover">`
+    : (a.type === '千字长文' ? '📄' : '🖼️');
+
+  const sourceBadge = a.source === 'manual'
+    ? `<span class="source-badge manual">手动创作</span>`
+    : a.source === 'from-main'
+    ? `<span class="source-badge from-main">来自绘文</span>`
+    : `<span class="source-badge matrix">矩阵批次</span>`;
+
+  const platformBadge = `<span class="platform-pill ${a.platform}">${a.platformName}</span>`;
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-cover">${coverHtml}</div>
+    <div class="drawer-title">${a.title}</div>
+    <div class="drawer-attrs">
+      ${platformBadge}
+      ${sourceBadge}
+      <span class="platform-pill" style="background:var(--bg);color:var(--tx2)">${a.type}</span>
+    </div>
+
+    <div class="drawer-section-title">正文</div>
+    <div class="drawer-body-text">${a.body}</div>
+
+    <div class="drawer-section-title">发布归因</div>
+    <div class="drawer-attribution">
+      <div class="attr-row">
+        <span class="attr-label">目标账号</span>
+        <span class="attr-val">${a.account}</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-label">发布平台</span>
+        <span class="attr-val">${a.platformName}</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-label">发布时间</span>
+        <span class="attr-val">${a.publishedAt ?? '未发布'}</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-label">最近更新</span>
+        <span class="attr-val">${a.updatedAt}</span>
+      </div>
+    </div>
+  `;
+}
+
+// ── SEARCH / FILTER (stub) ──
+function handleSearch(q) {}
+function handleFilter() {}
+
+
+// ── KEYBOARD NAV ──
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('detailDrawer').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft') navDrawer(-1);
+  if (e.key === 'ArrowRight') navDrawer(1);
+  if (e.key === 'Escape') closeDrawer();
+});
+</script>
+</body>
+</html>

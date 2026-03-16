@@ -1,0 +1,152 @@
+/*
+ * design-tokens.css
+ * 讯飞绘文矩阵号运营 — 设计 Token 统一文件
+ * 参考规范：DESIGN.md
+ *
+ * 所有 HTML 页面在 <head> 顶部引入本文件：
+ *   <link rel="stylesheet" href="design-tokens.css">
+ */
+
+/* ─────────────────────────────────────────
+   字体栈（系统字体优先，无需外部加载）
+   ───────────────────────────────────────── */
+:root {
+  --font-family-base: 'PingFang SC', 'Hiragino Sans GB', 'Source Han Sans CN',
+                      'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
+}
+
+/* ─────────────────────────────────────────
+   颜色 Token
+   ───────────────────────────────────────── */
+:root {
+  /* 品牌色 */
+  --color-brand:          #8B24FF;
+  --color-brand-hover:    #7A1EE8;
+  --color-brand-pressed:  #6A18CC;
+  --color-brand-light:    #F5EDFF;
+  --color-brand-mid:      #D4ADFF;
+
+  /* 文字色（4级层次） */
+  --color-text-1:   #1D2129;   /* 强调/正文标题 */
+  --color-text-2:   #4E5969;   /* 次强调/正文 */
+  --color-text-3:   #86909C;   /* 次要文案、占位符 */
+  --color-text-4:   #C9CDD4;   /* 禁用置灰 */
+  --color-text-inv: #FFFFFF;   /* 深色背景上文字 */
+
+  /* 功能色 */
+  --color-success:        #02BE42;
+  --color-success-light:  #D9FBE4;
+  --color-warning:        #FF7F00;
+  --color-warning-light:  #FFF0D9;
+  --color-danger:         #F5303F;
+  --color-danger-light:   #FFDFDF;
+
+  /* 中性色 */
+  --color-border:    #E5E6EB;          /* 分割线、描边 */
+  --color-bg:        #F2F3F5;          /* 页面大背景 */
+  --color-bg-card:   #FFFFFF;          /* 卡片/面板背景 */
+  --color-overlay:   rgba(0,0,0,.45);  /* 遮罩层 */
+
+  /* 侧边栏宽度（布局常量） */
+  --sidebar-width: 220px;
+}
+
+/* ─────────────────────────────────────────
+   字体 Token（font shorthand）
+   ───────────────────────────────────────── */
+:root {
+  /* 标题 */
+  --font-title-l: 600 18px/28px var(--font-family-base);  /* 大标题：模块名、弹窗标题 */
+  --font-title-m: 600 15px/24px var(--font-family-base);  /* 中标题：卡片标题、抽屉标题 */
+  --font-title-s: 600 13px/20px var(--font-family-base);  /* 小标题：侧边栏分组、表单分区 */
+
+  /* 正文 */
+  --font-body-l:  400 14px/22px var(--font-family-base);  /* 主正文：卡片描述、表单输入 */
+  --font-body-m:  400 13px/20px var(--font-family-base);  /* 次要正文：标签、辅助说明 */
+  --font-body-s:  400 12px/18px var(--font-family-base);  /* 最小文字：时间戳、徽标 */
+
+  /* 标签/按钮 */
+  --font-label:   500 13px/20px var(--font-family-base);  /* 按钮、Tab 文字 */
+}
+
+/* ─────────────────────────────────────────
+   间距 Token
+   ───────────────────────────────────────── */
+:root {
+  --spacing-1:  4px;   /* icon 内边距、紧凑标签 */
+  --spacing-btn-v: 6px; /* 按钮垂直内边距 */
+  --spacing-2:  8px;   /* 元素间紧凑间距 */
+  --spacing-3:  12px;  /* 组件内间距、按钮/输入框内边距 */
+  --spacing-4:  16px;  /* 卡片内边距、表单项间距 */
+  --spacing-5:  20px;  /* Tab 留白、filter bar 水平间距 */
+  --spacing-6:  24px;  /* section 间距、弹窗内边距 */
+  --spacing-7:  28px;  /* 页面主内容区内边距 */
+}
+
+/* ─────────────────────────────────────────
+   圆角 Token
+   ───────────────────────────────────────── */
+:root {
+  --radius-xs:   4px;    /* 徽标、tag */
+  --radius-s:    6px;    /* 按钮、输入框 */
+  --radius-m:    8px;    /* 小卡片、下拉 */
+  --radius-l:    10px;   /* 主卡片、面板 */
+  --radius-xl:   12px;   /* 弹窗、抽屉 */
+  --radius-full: 999px;  /* 胶囊、头像 */
+}
+
+/* ─────────────────────────────────────────
+   阴影 Token
+   ───────────────────────────────────────── */
+:root {
+  --shadow-card:  0 1px 4px rgba(0,0,0,.06);
+  --shadow-hover: 0 4px 16px rgba(139,36,255,.10);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,.15);
+}
+
+/* ─────────────────────────────────────────
+   向后兼容别名
+   （旧变量名 → 新 Token，供 HTML 文件逐步迁移）
+   ───────────────────────────────────────── */
+:root {
+  /* 颜色别名 */
+  --p:   var(--color-brand);
+  --pl:  var(--color-brand-light);
+  --pm:  var(--color-brand-mid);
+  --tx1: var(--color-text-1);
+  --tx2: var(--color-text-2);
+  --txm: var(--color-text-3);
+  --bd:  var(--color-border);
+  --bg:  var(--color-bg);
+  --wh:  var(--color-bg-card);
+  --gr:  var(--color-success);
+  --grl: var(--color-success-light);
+  --or:  var(--color-warning);
+  --orl: var(--color-warning-light);
+  --rd:  var(--color-danger);
+  --rdl: var(--color-danger-light);
+  --sw:  var(--sidebar-width);
+
+  /* 品牌渐变（侧边栏品牌图标用） */
+  --t:    #5BC4C0;
+  --tl:   #E6F7F7;
+  --grad: linear-gradient(135deg, #C8F0EE 0%, #E8D9FC 100%);
+}
+
+/* ─────────────────────────────────────────
+   全局基础样式（body reset + 字体）
+   ───────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font: var(--font-body-l);
+  font-family: var(--font-family-base);
+  background: var(--color-bg);
+  color: var(--color-text-1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

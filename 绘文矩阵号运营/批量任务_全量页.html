@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>批量任务 - 矩阵号运营</title>
+    <link rel="stylesheet" href="design-tokens.css">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sb {
+            width: var(--sidebar-width);
+            background: var(--color-bg-card);
+            border-right: 1px solid var(--color-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 10;
+            display: flex;
+            flex-direction: column
+        }
+
+        .sb-header {
+            padding: var(--spacing-4) var(--spacing-4) var(--spacing-3);
+            border-bottom: 1px solid var(--color-border)
+        }
+
+        .sb-back {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            font: var(--font-body-s);
+            color: var(--color-text-3);
+            cursor: pointer;
+            margin-bottom: var(--spacing-3);
+            transition: color .12s
+        }
+
+        .sb-back:hover {
+            color: var(--color-brand)
+        }
+
+        .sb-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3)
+        }
+
+        .sb-brand-ic {
+            width: 32px;
+            height: 32px;
+            background: var(--grad);
+            border-radius: var(--radius-l);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px
+        }
+
+        .sb-brand-name {
+            font: var(--font-title-s);
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--color-text-1)
+        }
+
+        .sb-brand-sub {
+            font: var(--font-body-s);
+            color: var(--color-text-3);
+            margin-top: 1px
+        }
+
+        .sb-nav {
+            padding: var(--spacing-3);
+            flex: 1;
+            overflow-y: auto
+        }
+
+        .nav-group {
+            margin-bottom: var(--spacing-2)
+        }
+
+        .nav-group-label {
+            font: var(--font-body-s);
+            color: var(--color-text-3);
+            padding: var(--spacing-2) var(--spacing-3) var(--spacing-1);
+            letter-spacing: .04em;
+            font-weight: 500;
+            text-transform: uppercase
+        }
+
+        .ni {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            padding: var(--spacing-2) var(--spacing-3);
+            border-radius: var(--radius-m);
+            color: var(--color-text-2);
+            cursor: pointer;
+            margin-bottom: 1px;
+            font: var(--font-body-m);
+            transition: all .12s;
+            position: relative
+        }
+
+        .ni:hover {
+            background: var(--color-bg);
+            color: var(--color-text-1)
+        }
+
+        .ni.on {
+            background: var(--color-brand-light);
+            color: var(--color-brand);
+            font-weight: 600
+        }
+
+        .ni.on::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 18px;
+            background: var(--color-brand);
+            border-radius: 0 var(--radius-xs) var(--radius-xs) 0
+        }
+
+        .nic {
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0
+        }
+
+        .nbadge {
+            margin-left: auto;
+            background: var(--rd);
+            color: #fff;
+            font-size: 10px;
+            padding: 1px 5px;
+            border-radius: 10px;
+            font-weight: 600
+        }
+
+        .nbadge.or {
+            background: var(--or)
+        }
+
+        .nbadge.gr {
+            background: var(--gr)
+        }
+
+        .sb-footer {
+            padding: 12px 14px;
+            border-top: 1px solid var(--bd)
+        }
+
+        .sf-av {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--p)
+        }
+
+        .sf-account {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 9px;
+            cursor: pointer
+        }
+
+        .sf-name {
+            font-size: 12.5px;
+            font-weight: 500;
+            flex: 1
+        }
+
+        .sf-plan {
+            font-size: 10px;
+            color: var(--p);
+            background: var(--pl);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-weight: 600
+        }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sw);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh
+        }
+
+        .topbar {
+            background: var(--wh);
+            border-bottom: 1px solid var(--bd);
+            padding: 0 28px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 8
+        }
+
+        .tb-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--txm)
+        }
+
+        .tb-breadcrumb .cur {
+            color: var(--tx1);
+            font-weight: 700;
+            font-size: 15px
+        }
+
+        .btn-p {
+            background: var(--color-brand);
+            color: var(--color-text-inv);
+            border: none;
+            padding: var(--spacing-btn-v) var(--spacing-4);
+            border-radius: var(--radius-s);
+            font: var(--font-label);
+            cursor: pointer;
+            transition: all .15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-2);
+        }
+
+        .btn-p:hover {
+            background: var(--color-brand-hover);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-p:active {
+            background: var(--color-brand-pressed);
+        }
+
+        .btn-g {
+            background: var(--color-bg-card);
+            color: var(--color-text-1);
+            border: 1px solid var(--color-border);
+            padding: var(--spacing-btn-v) var(--spacing-4);
+            border-radius: var(--radius-s);
+            font: var(--font-label);
+            cursor: pointer;
+            transition: all .12s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-2);
+        }
+
+        .btn-g:hover {
+            border-color: var(--color-brand-mid);
+            color: var(--color-brand);
+            background: var(--color-brand-light);
+        }
+
+        .btn-sm {
+            background: transparent;
+            color: var(--tx2);
+            border: 1px solid var(--bd);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .12s
+        }
+
+        .btn-sm:hover {
+            border-color: var(--pm);
+            color: var(--p)
+        }
+
+        .content {
+            padding: 24px 28px
+        }
+
+        /* STAT RIBBON */
+        .stat-ribbon {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 24px
+        }
+
+        .sr {
+            background: var(--wh);
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .sr-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0
+        }
+
+        .sr-val {
+            font-size: 22px;
+            font-weight: 700
+        }
+
+        .sr-label {
+            font-size: 11px;
+            color: var(--txm);
+            margin-top: 1px
+        }
+
+        /* FILTER BAR */
+        .filter-bar {
+            background: var(--wh);
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            padding: 14px 20px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .filter-section {
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: var(--txm);
+            white-space: nowrap
+        }
+
+        .ft {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            cursor: pointer;
+            color: var(--tx2);
+            border: 1px solid transparent;
+            transition: all .12s
+        }
+
+        .ft:hover {
+            color: var(--p)
+        }
+
+        .ft.on {
+            background: var(--pl);
+            color: var(--p);
+            font-weight: 600;
+            border-color: var(--pm)
+        }
+
+        .search-box {
+            margin-left: auto;
+            position: relative
+        }
+
+        .search-box input {
+            border: 1px solid var(--bd);
+            border-radius: 20px;
+            padding: 6px 14px 6px 32px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color .15s;
+            width: 200px;
+            background: var(--bg)
+        }
+
+        .search-box input:focus {
+            border-color: var(--p);
+            background: var(--wh)
+        }
+
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px
+        }
+
+        /* TYPE PILLS */
+        .type-gen {
+            background: #EEF2FF;
+            color: #4F46E5;
+            font: var(--font-body-s);
+            padding: 2px 8px;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            white-space: nowrap
+        }
+
+        .type-pub {
+            background: #ECFDF5;
+            color: #059669;
+            font: var(--font-body-s);
+            padding: 2px 8px;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            white-space: nowrap
+        }
+
+        .type-both {
+            background: #FFF7ED;
+            color: #D97706;
+            font: var(--font-body-s);
+            padding: 2px 8px;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            white-space: nowrap
+        }
+
+        /* PLATFORM TAGS */
+        .pt {
+            font: var(--font-body-s);
+            padding: 1px 7px;
+            border-radius: var(--radius-xs);
+            font-weight: 500
+        }
+
+        .xhs {
+            background: #FFF0F0;
+            color: #E8324A
+        }
+
+        .gzh {
+            background: #F0FBF0;
+            color: #1AAD19
+        }
+
+        .dy {
+            background: #F5F0FF;
+            color: #7C5CFC
+        }
+
+        .sph {
+            background: #FFF7E6;
+            color: #FA8C16
+        }
+
+        /* STATUS TAGS */
+        .st {
+            font-size: 11.5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+            white-space: nowrap
+        }
+
+        .st-run {
+            background: var(--pl);
+            color: var(--p)
+        }
+
+        .st-rev {
+            background: var(--orl);
+            color: #D97706
+        }
+
+        .st-pub {
+            background: #EDE9FE;
+            color: #6D28D9
+        }
+
+        .st-done {
+            background: var(--grl);
+            color: #059669
+        }
+
+        .st-fail {
+            background: var(--rdl);
+            color: var(--rd)
+        }
+
+        /* TASK TABLE */
+        .task-table {
+            background: var(--wh);
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            overflow: hidden
+        }
+
+        .tt-header {
+            display: grid;
+            grid-template-columns: 24px 1fr 90px 90px 120px 100px 110px 100px;
+            gap: 12px;
+            padding: 10px 20px;
+            background: #f8f9fb;
+            border-bottom: 1px solid var(--bd);
+            font-size: 12px;
+            color: var(--txm);
+            font-weight: 500;
+            align-items: center
+        }
+
+        .task-row {
+            border-bottom: 1px solid var(--bd)
+        }
+
+        .task-row:last-child {
+            border-bottom: none
+        }
+
+        .tr-main {
+            display: grid;
+            grid-template-columns: 24px 1fr 90px 90px 120px 100px 110px 100px;
+            gap: 12px;
+            padding: 14px 20px;
+            align-items: center;
+            cursor: pointer;
+            transition: background .1s
+        }
+
+        .tr-main > div {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .tr-main:hover {
+            background: #fafbff
+        }
+
+        .task-row.expanded .tr-main {
+            background: var(--pl)
+        }
+
+        .td-check {
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--bd);
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0
+        }
+
+        .td-name {
+            min-width: 0
+        }
+
+        .tn {
+            font-size: 13.5px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 3px
+        }
+
+        .tn-meta {
+            font-size: 11.5px;
+            color: var(--txm);
+            display: flex;
+            gap: 6px;
+            align-items: center
+        }
+
+        .td-progress {
+            font-size: 13px
+        }
+
+        .prog-bar {
+            height: 3px;
+            background: var(--bd);
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden
+        }
+
+        .prog-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--t), var(--p));
+            border-radius: 2px
+        }
+
+        .expand-chevron {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--txm);
+            transition: transform .2s
+        }
+
+        .task-row.expanded .expand-chevron {
+            transform: rotate(180deg)
+        }
+
+        /* EXPANDED ROW */
+        .tr-expand {
+            display: none;
+            padding: 16px 20px 20px;
+            background: #fafbff;
+            border-top: 1px dashed var(--bd)
+        }
+
+        .task-row.expanded .tr-expand {
+            display: block
+        }
+
+        .expand-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px
+        }
+
+        .expand-actions-left {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .expand-actions-right {
+            display: flex;
+            gap: 8px
+        }
+
+        /* CONTENT MINI CARD GRID */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px
+        }
+
+        .mc {
+            border: 1.5px solid var(--bd);
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--wh);
+            cursor: pointer;
+            transition: all .15s;
+            position: relative
+        }
+
+        .mc:hover {
+            border-color: var(--pm);
+            box-shadow: 0 4px 12px rgba(124, 92, 252, .1);
+            transform: translateY(-1px)
+        }
+
+        .mc-thumb {
+            height: 72px;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            position: relative
+        }
+
+        .mc-status {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px
+        }
+
+        .mcs-ok {
+            background: var(--gr)
+        }
+
+        .mcs-rev {
+            background: var(--or)
+        }
+
+        .mcs-run {
+            background: var(--p)
+        }
+
+        .mcs-fail {
+            background: var(--rd)
+        }
+
+        .mcs-pub {
+            background: #6D28D9
+        }
+
+        .mc-body {
+            padding: 8px
+        }
+
+        .mc-title {
+            font-size: 11.5px;
+            font-weight: 500;
+            line-height: 1.3;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            color: var(--tx1)
+        }
+
+        .mc-foot {
+            font-size: 10px;
+            color: var(--txm);
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between
+        }
+
+        .mc-more {
+            border: 1.5px dashed var(--bd);
+            border-radius: 10px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            padding: 12px;
+            transition: all .15s;
+            min-height: 130px
+        }
+
+        .mc-more:hover {
+            border-color: var(--p);
+            color: var(--p)
+        }
+
+        .mc-more-num {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--p)
+        }
+
+        .mc-more-label {
+            font-size: 11px;
+            color: var(--txm)
+        }
+
+        /* FAILED ALERT INLINE */
+        .fail-alert {
+            background: var(--rdl);
+            border: 1px solid #FECDD3;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12.5px;
+            color: var(--rd);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px
+        }
+
+        /* EMPTY */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--txm)
+        }
+
+        .empty-ic {
+            font-size: 40px;
+            margin-bottom: 12px
+        }
+
+        .empty p {
+            font-size: 13.5px;
+            margin-bottom: 16px;
+            line-height: 1.6
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .spinning {
+            animation: spin 1.5s linear infinite;
+            display: inline-block
+        }
+
+        /* ── CONTENT PREVIEW DRAWER ── */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .35);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s
+        }
+
+        .drawer-overlay.show {
+            opacity: 1;
+            pointer-events: all
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 480px;
+            background: var(--wh);
+            box-shadow: -10px 0 40px rgba(0, 0, 0, .12);
+            z-index: 201;
+            transform: translateX(102%);
+            transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+            display: flex;
+            flex-direction: column
+        }
+
+        .drawer-overlay.show .drawer {
+            transform: translateX(0)
+        }
+
+        .drawer-head {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--bd);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px
+        }
+
+        .drawer-head-info {
+            flex: 1
+        }
+
+        .drawer-head-title {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 4px
+        }
+
+        .x-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--bd);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--txm);
+            font-size: 15px;
+            flex-shrink: 0;
+            transition: all .15s;
+            background: var(--wh)
+        }
+
+        .x-btn:hover {
+            border-color: var(--rd);
+            color: var(--rd)
+        }
+
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 22px
+        }
+
+        .drawer-footer {
+            padding: 14px 22px;
+            border-top: 1px solid var(--bd);
+            display: flex;
+            gap: 10px;
+            background: #fafafa
+        }
+
+        .d-img {
+            width: 100%;
+            height: 160px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px;
+            margin-bottom: 18px
+        }
+
+        .d-label {
+            font-size: 11px;
+            color: var(--txm);
+            font-weight: 500;
+            margin-bottom: 6px;
+            margin-top: 16px;
+            letter-spacing: .04em;
+            text-transform: uppercase
+        }
+
+        .d-text {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 13.5px;
+            line-height: 1.75;
+            color: var(--tx1)
+        }
+
+        .ai-flag {
+            background: #FFF7ED;
+            border: 1px solid #FED7AA;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 14px;
+            font-size: 12.5px;
+            color: #92400E;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start
+        }
+
+        /* ── FULL CONTENT MODAL ── */
+        .fc-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            backdrop-filter: blur(4px);
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .fc-overlay.show {
+            opacity: 1;
+            pointer-events: all
+        }
+
+        .fc-modal {
+            background: var(--wh);
+            width: 860px;
+            max-width: 94vw;
+            max-height: 88vh;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px);
+            transition: transform .25s
+        }
+
+        .fc-overlay.show .fc-modal {
+            transform: translateY(0)
+        }
+
+        .fc-head {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--bd);
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .fc-head-title {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 700
+        }
+
+        .fc-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px
+        }
+
+        .fc-filters {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px
+        }
+
+        .fc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px
+        }
+
+        .fc-card {
+            border: 1.5px solid var(--bd);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--wh);
+            cursor: pointer;
+            transition: all .15s
+        }
+
+        .fc-card:hover {
+            border-color: var(--pm);
+            box-shadow: 0 4px 14px rgba(124, 92, 252, .12);
+            transform: translateY(-2px)
+        }
+
+        .fc-thumb {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px
+        }
+
+        .fc-card-body {
+            padding: 10px
+        }
+
+        .fc-title {
+            font-size: 12.5px;
+            font-weight: 600;
+            line-height: 1.35;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden
+        }
+
+        .fc-meta {
+            font-size: 11px;
+            color: var(--txm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .fc-badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-weight: 600
+        }
+
+        .fc-ok {
+            background: var(--grl);
+            color: #059669
+        }
+
+        .fc-rev {
+            background: var(--orl);
+            color: #D97706
+        }
+
+        .fc-pub {
+            background: #EDE9FE;
+            color: #6D28D9
+        }
+
+        .fc-fail {
+            background: var(--rdl);
+            color: var(--rd)
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sb">
+        <div class="sb-header">
+            <div class="sb-back" onclick="history.back()">← 返回讯飞绘文</div>
+            <div class="sb-brand">
+                <div class="sb-brand-ic">⚡</div>
+                <div>
+                    <div class="sb-brand-name">矩阵号运营</div>
+                    <div class="sb-brand-sub">47 个账号 · Pro 版</div>
+                </div>
+            </div>
+        </div>
+        <nav class="sb-nav">
+            <div class="nav-group">
+                <div class="ni" onclick="location.href='矩阵号运营_landing_page.html'"><span class="nic">🏠</span>工作台</div>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">内容生产</div>
+                <div class="ni on"><span class="nic">⚡</span>批量任务<span class="nbadge or">5</span></div>
+                <div class="ni"><span class="nic">✨</span>Skill 广场</div>
+                <div class="ni" onclick="location.href='内容库.html'" style="cursor:pointer"><span class="nic">🗂️</span>内容库<span class="nbadge gr">347</span></div>
+                <div class="ni" onclick="location.href='模板库.html'" style="cursor:pointer"><span class="nic">🗃️</span>模板库</div>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">账号管理</div>
+                <div class="ni"><span class="nic">👥</span>账号列表<span class="nbadge">3</span></div>
+                <div class="ni"><span class="nic">🗂️</span>分组管理</div>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">互动与数据</div>
+                <div class="ni"><span class="nic">💬</span>评论与私信<span class="nbadge">12</span></div>
+                <div class="ni"><span class="nic">📈</span>数据看板</div>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">设置</div>
+                <div class="ni"><span class="nic">⚙️</span>审核规则</div>
+                <div class="ni"><span class="nic">🔔</span>通知设置</div>
+            </div>
+        </nav>
+        <div class="sb-footer">
+            <div class="sf-account">
+                <div class="sf-av">呦</div>
+                <div class="sf-name">呦呦</div>
+                <div class="sf-plan">Pro</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="main">
+        <div class="topbar">
+            <div class="tb-breadcrumb">
+                <span onclick="location.href='矩阵号运营_landing_page.html'" style="cursor:pointer">工作台</span>
+                <span style="color:var(--bd)">›</span>
+                <span class="cur">批量任务</span>
+            </div>
+            <div style="display:flex;gap:10px">
+                <button class="btn-p" onclick="alert('打开新建弹窗')">＋ 新建批量任务</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- STAT RIBBON -->
+            <div class="stat-ribbon">
+                <div class="sr">
+                    <div class="sr-icon" style="background:var(--pl)">⚡</div>
+                    <div>
+                        <div class="sr-val">47</div>
+                        <div class="sr-label">全部任务</div>
+                    </div>
+                </div>
+                <div class="sr">
+                    <div class="sr-icon" style="background:var(--pl)">🔄</div>
+                    <div>
+                        <div class="sr-val" style="color:var(--p)">2</div>
+                        <div class="sr-label">生成中</div>
+                    </div>
+                </div>
+                <div class="sr">
+                    <div class="sr-icon" style="background:var(--orl)">⏳</div>
+                    <div>
+                        <div class="sr-val" style="color:var(--or)">3</div>
+                        <div class="sr-label">待审核</div>
+                    </div>
+                </div>
+                <div class="sr">
+                    <div class="sr-icon" style="background:#EDE9FE">📤</div>
+                    <div>
+                        <div class="sr-val" style="color:#6D28D9">1</div>
+                        <div class="sr-label">发布中</div>
+                    </div>
+                </div>
+                <div class="sr">
+                    <div class="sr-icon" style="background:var(--grl)">✅</div>
+                    <div>
+                        <div class="sr-val" style="color:var(--gr)">41</div>
+                        <div class="sr-label">已完成</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTER BAR -->
+            <div class="filter-bar">
+                <div class="filter-section">
+                    <span class="filter-label">任务类型</span>
+                    <div class="ft on" onclick="setFilter(this,'type')">全部</div>
+                    <div class="ft" onclick="setFilter(this,'type')">内容生成</div>
+                    <div class="ft" onclick="setFilter(this,'type')">内容发布</div>
+                    <div class="ft" onclick="setFilter(this,'type')">生成＋发布</div>
+                </div>
+                <div style="width:1px;height:20px;background:var(--bd)"></div>
+                <div class="filter-section">
+                    <span class="filter-label">状态</span>
+                    <div class="ft on" onclick="setFilter(this,'status')">全部</div>
+                    <div class="ft" onclick="setFilter(this,'status')">生成中</div>
+                    <div class="ft" onclick="setFilter(this,'status')">待审核</div>
+                    <div class="ft" onclick="setFilter(this,'status')">发布中</div>
+                    <div class="ft" onclick="setFilter(this,'status')">已完成</div>
+                    <div class="ft" onclick="setFilter(this,'status')">失败</div>
+                </div>
+                <div class="search-box">
+                    <input type="text" placeholder="搜索任务名或 Skill…">
+                </div>
+            </div>
+
+            <!-- TASK TABLE -->
+            <div class="task-table">
+                <div class="tt-header">
+                    <div></div>
+                    <div>任务名称</div>
+                    <div>类型</div>
+                    <div>平台</div>
+                    <div>进度</div>
+                    <div>状态</div>
+                    <div>创建时间</div>
+                    <div>操作</div>
+                </div>
+
+                <!-- ROW 1: 生成中 - 可展开看内容 -->
+                <div class="task-row" id="row1">
+                    <div class="tr-main" onclick="toggleRow('row1')">
+                        <div class="td-check" onclick="event.stopPropagation()"></div>
+                        <div class="td-name">
+                            <div class="tn">3月护肤品推广系列</div>
+                            <div class="tn-meta">
+                                <span class="type-both">生成＋发布</span>
+                                <span>小红书模板复刻</span>
+                            </div>
+                        </div>
+                        <div><span class="type-both">生成＋发布</span></div>
+                        <div><span class="pt xhs">小红书</span></div>
+                        <div class="td-progress">
+                            <div style="font-size:13px;font-weight:600">18 / 30 <span
+                                    style="font-size:11px;color:var(--txm);font-weight:400">篇</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill" style="width:60%"></div>
+                            </div>
+                        </div>
+                        <div><span class="st st-run"><span class="spinning">⚙</span> 生成中</span></div>
+                        <div style="font-size:12px;color:var(--txm)">今天 14:32</div>
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <button class="btn-sm" onclick="event.stopPropagation()">详情</button>
+                            <span class="expand-chevron">▾</span>
+                        </div>
+                    </div>
+                    <div class="tr-expand">
+                        <div class="expand-actions">
+                            <div class="expand-actions-left">
+                                <span style="font-size:13px;font-weight:600;color:var(--tx2)">已生成 18 篇 · 14 篇就绪 · 4
+                                    篇待审核</span>
+                            </div>
+                            <div class="expand-actions-right">
+                                <button class="btn-sm">📦 导出打包</button>
+                                <button class="btn-g" style="font-size:12px;color:var(--p);border-color:var(--p)">🚀
+                                    立即发布 14 篇就绪项</button>
+                            </div>
+                        </div>
+                        <div class="content-grid">
+                            <div class="mc" onclick="openDrawer(1)">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#FFE4E9,#FFF0F0)">🧴<div
+                                        class="mc-status mcs-pub">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">护肤秘籍｜敏感肌春日护肤攻略推荐</div>
+                                    <div class="mc-foot"><span>@小灯发芽</span><span style="color:#6D28D9">已发布</span></div>
+                                </div>
+                            </div>
+                            <div class="mc" onclick="openDrawer(2)">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#E8D9FC,#F2EFFE)">💊<div
+                                        class="mc-status mcs-ok">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">玻尿酸真的有用吗？皮肤科医生来解答</div>
+                                    <div class="mc-foot"><span>@诗意宇宙</span><span style="color:var(--gr)">就绪</span></div>
+                                </div>
+                            </div>
+                            <div class="mc" onclick="openDrawer(3)">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#C8F0EE,#E6F7F7)">🌸<div
+                                        class="mc-status mcs-ok">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">春天换季肌肤问题终极解决方案</div>
+                                    <div class="mc-foot"><span>@颜色研究所</span><span style="color:var(--gr)">就绪</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mc" onclick="openDrawer(4)">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#FEF3C7,#FFF7ED)">✨<div
+                                        class="mc-status mcs-rev">!</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">精华液选购指南：这 5 款你一定看过</div>
+                                    <div class="mc-foot"><span>@粉底研究员</span><span style="color:var(--or)">待审核</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mc" onclick="openDrawer(5)">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#D1FAE5,#ECFDF5)">🧖<div
+                                        class="mc-status mcs-ok">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">周末护肤 SPA 感觉，在家也能做到</div>
+                                    <div class="mc-foot"><span>@小灯发芽</span><span style="color:var(--gr)">就绪</span></div>
+                                </div>
+                            </div>
+                            <div class="mc-more" onclick="openFcModal('3月护肤品推广系列', 30)">
+                                <div class="mc-more-num">+12</div>
+                                <div class="mc-more-label">查看全部内容</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 2: 待审核 -->
+                <div class="task-row" id="row2">
+                    <div class="tr-main" onclick="toggleRow('row2')">
+                        <div class="td-check" onclick="event.stopPropagation()"></div>
+                        <div class="td-name">
+                            <div class="tn">Q1 品牌故事系列</div>
+                            <div class="tn-meta">
+                                <span class="type-gen">内容生成</span>
+                                <span>公众号模板复刻</span>
+                            </div>
+                        </div>
+                        <div><span class="type-gen">内容生成</span></div>
+                        <div><span class="pt gzh">公众号</span></div>
+                        <div class="td-progress">
+                            <div style="font-size:13px;font-weight:600">12 / 12 <span
+                                    style="font-size:11px;color:var(--txm);font-weight:400">篇</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill" style="width:100%"></div>
+                            </div>
+                        </div>
+                        <div><span class="st st-rev">⏳ 待审核</span></div>
+                        <div style="font-size:12px;color:var(--txm)">今天 11:05</div>
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <button class="btn-sm" style="color:var(--or);border-color:var(--or)"
+                                onclick="event.stopPropagation()">去审核</button>
+                            <span class="expand-chevron">▾</span>
+                        </div>
+                    </div>
+                    <div class="tr-expand">
+                        <div class="expand-actions">
+                            <div class="expand-actions-left">
+                                <span style="font-size:13px;font-weight:600;color:var(--tx2)">12 篇全部生成完毕 · 等待人工审核</span>
+                            </div>
+                            <div class="expand-actions-right">
+                                <button class="btn-sm">📦 导出打包</button>
+                                <button class="btn-g" style="font-size:12px;color:var(--or);border-color:var(--or)">✏️
+                                    进入批量审核</button>
+                            </div>
+                        </div>
+                        <div class="content-grid">
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#F0FBF0,#D1FAE5)">📰<div
+                                        class="mc-status mcs-rev">!</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">懂车帝2024年Q1品牌发展回顾与展望</div>
+                                    <div class="mc-foot"><span>公众号</span><span style="color:var(--or)">待审核</span></div>
+                                </div>
+                            </div>
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#EEF2FF,#E0E7FF)">📖<div
+                                        class="mc-status mcs-rev">!</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">汽车行业2025年关键趋势分析报告</div>
+                                    <div class="mc-foot"><span>公众号</span><span style="color:var(--or)">待审核</span></div>
+                                </div>
+                            </div>
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#FEF3C7,#FFF7ED)">🏆<div
+                                        class="mc-status mcs-rev">!</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">新能源汽车市场深度洞察：谁在领跑</div>
+                                    <div class="mc-foot"><span>公众号</span><span style="color:var(--or)">待审核</span></div>
+                                </div>
+                            </div>
+                            <div class="mc-more" onclick="openFcModal('Q1 品牌故事系列', 12)">
+                                <div class="mc-more-num">+9</div>
+                                <div class="mc-more-label">查看全部内容</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 3: 待审核 (有失败) -->
+                <div class="task-row" id="row3">
+                    <div class="tr-main" onclick="toggleRow('row3')">
+                        <div class="td-check" onclick="event.stopPropagation()"></div>
+                        <div class="td-name">
+                            <div class="tn">春季新品短视频脚本</div>
+                            <div class="tn-meta">
+                                <span class="type-gen">内容生成</span>
+                                <span>自定义 Skill</span>
+                            </div>
+                        </div>
+                        <div><span class="type-gen">内容生成</span></div>
+                        <div><span class="pt dy">抖音</span></div>
+                        <div class="td-progress">
+                            <div style="font-size:13px;font-weight:600">23 / 25 <span
+                                    style="font-size:11px;color:var(--txm);font-weight:400">篇</span> <span
+                                    style="font-size:11px;color:var(--rd)">2失败</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill" style="width:92%"></div>
+                            </div>
+                        </div>
+                        <div><span class="st st-rev">⏳ 待审核</span></div>
+                        <div style="font-size:12px;color:var(--txm)">昨天 18:20</div>
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <button class="btn-sm" style="color:var(--rd);border-color:var(--rd)"
+                                onclick="event.stopPropagation()">重试</button>
+                            <span class="expand-chevron">▾</span>
+                        </div>
+                    </div>
+                    <div class="tr-expand">
+                        <div class="fail-alert">⚠️ 有 2 篇内容生成失败，可能是输入参数有误或模型超时。<button class="btn-sm"
+                                style="color:var(--rd);border-color:var(--rd);margin-left:auto"
+                                onclick="alert('重试失败项')">一键重试失败项</button></div>
+                        <div class="expand-actions">
+                            <div class="expand-actions-left">
+                                <span style="font-size:13px;font-weight:600;color:var(--tx2)">23 篇已生成 · 2 篇失败</span>
+                            </div>
+                            <div class="expand-actions-right">
+                                <button class="btn-sm">📦 导出打包</button>
+                                <button class="btn-g" style="font-size:12px;color:var(--or);border-color:var(--or)">✏️
+                                    进入批量审核</button>
+                            </div>
+                        </div>
+                        <div class="content-grid">
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#F5F0FF,#EDE9FE)">🎬<div
+                                        class="mc-status mcs-ok">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">春季新品发布｜3分钟讲清楚卖点</div>
+                                    <div class="mc-foot"><span>抖音</span><span style="color:var(--gr)">就绪</span></div>
+                                </div>
+                            </div>
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#FFE4E9,#FFF0F0)">❌<div
+                                        class="mc-status mcs-fail">✗</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">生成失败 · 点击查看原因</div>
+                                    <div class="mc-foot"><span>第5行</span><span style="color:var(--rd)">失败</span></div>
+                                </div>
+                            </div>
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#C8F0EE,#E6F7F7)">🌿<div
+                                        class="mc-status mcs-ok">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">产品背后的故事：从设计到用户手中</div>
+                                    <div class="mc-foot"><span>抖音</span><span style="color:var(--gr)">就绪</span></div>
+                                </div>
+                            </div>
+                            <div class="mc-more" onclick="openFcModal('春季新品短视频脚本', 25)">
+                                <div class="mc-more-num">+21</div>
+                                <div class="mc-more-label">查看全部内容</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 4: 发布中 -->
+                <div class="task-row" id="row4">
+                    <div class="tr-main" onclick="toggleRow('row4')">
+                        <div class="td-check" onclick="event.stopPropagation()"></div>
+                        <div class="td-name">
+                            <div class="tn">产品测评内容批量生成</div>
+                            <div class="tn-meta">
+                                <span class="type-both">生成＋发布</span>
+                                <span>跨平台内容转化</span>
+                            </div>
+                        </div>
+                        <div><span class="type-both">生成＋发布</span></div>
+                        <div><span class="pt sph">视频号</span></div>
+                        <div class="td-progress">
+                            <div style="font-size:13px;font-weight:600">4 / 20 <span
+                                    style="font-size:11px;color:var(--txm);font-weight:400">已发布</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill"
+                                    style="width:20%;background:linear-gradient(90deg,#6D28D9,var(--p))"></div>
+                            </div>
+                        </div>
+                        <div><span class="st st-pub">📤 发布中</span></div>
+                        <div style="font-size:12px;color:var(--txm)">今天 15:10</div>
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <button class="btn-sm" onclick="event.stopPropagation()">详情</button>
+                            <span class="expand-chevron">▾</span>
+                        </div>
+                    </div>
+                    <div class="tr-expand">
+                        <div class="expand-actions">
+                            <div class="expand-actions-left">
+                                <span style="font-size:13px;font-weight:600;color:var(--tx2)">20 篇全部生成 · 4 篇已发布 · 16
+                                    篇发布队列中</span>
+                            </div>
+                            <div class="expand-actions-right">
+                                <button class="btn-sm">查看发布日志</button>
+                                <button class="btn-sm" style="color:var(--rd);border-color:var(--rd)"
+                                    onclick="alert('暂停发布队列')">暂停发布</button>
+                            </div>
+                        </div>
+                        <div
+                            style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:12px">
+                            <div
+                                style="padding:10px 16px;background:#f8f9fb;border-bottom:1px solid var(--bd);font-size:12px;color:var(--txm);font-weight:500;display:grid;grid-template-columns:1fr 80px 100px 100px;gap:10px">
+                                <div>内容</div>
+                                <div>账号</div>
+                                <div>计划发布时间</div>
+                                <div>状态</div>
+                            </div>
+                            <div
+                                style="padding:10px 16px;font-size:13px;border-bottom:1px solid var(--bd);display:grid;grid-template-columns:1fr 80px 100px 100px;gap:10px;align-items:center">
+                                <div style="font-weight:500">iPhone评测：性价比究竟如何</div>
+                                <div style="font-size:12px;color:var(--txm)">@数码君</div>
+                                <div style="font-size:12px;color:var(--txm)">今天 16:00</div>
+                                <div><span style="color:var(--gr);font-size:12px">✅ 已发布</span></div>
+                            </div>
+                            <div
+                                style="padding:10px 16px;font-size:13px;border-bottom:1px solid var(--bd);display:grid;grid-template-columns:1fr 80px 100px 100px;gap:10px;align-items:center">
+                                <div style="font-weight:500">华为 Mate 70 深度体验报告</div>
+                                <div style="font-size:12px;color:var(--txm)">@测评达人</div>
+                                <div style="font-size:12px;color:var(--txm)">今天 17:30</div>
+                                <div><span style="color:var(--or);font-size:12px">⏳ 队列中</span></div>
+                            </div>
+                            <div
+                                style="padding:10px 16px;font-size:13px;display:grid;grid-template-columns:1fr 80px 100px 100px;gap:10px;align-items:center;color:var(--txm)">
+                                <div>…还有 14 篇待发布</div>
+                                <div></div>
+                                <div></div>
+                                <div><span style="font-size:12px;color:var(--p);cursor:pointer">查看全部</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 5: 已完成 -->
+                <div class="task-row" id="row5">
+                    <div class="tr-main" onclick="toggleRow('row5')">
+                        <div class="td-check" onclick="event.stopPropagation()"></div>
+                        <div class="td-name">
+                            <div class="tn">2月日常穿搭系列</div>
+                            <div class="tn-meta">
+                                <span class="type-both">生成＋发布</span>
+                                <span>小红书模板复刻</span>
+                            </div>
+                        </div>
+                        <div><span class="type-both">生成＋发布</span></div>
+                        <div><span class="pt xhs">小红书</span></div>
+                        <div class="td-progress">
+                            <div style="font-size:13px;font-weight:600">40 / 40 <span
+                                    style="font-size:11px;color:var(--txm);font-weight:400">已发布</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill" style="width:100%;background:var(--gr)"></div>
+                            </div>
+                        </div>
+                        <div><span class="st st-done">✅ 已完成</span></div>
+                        <div style="font-size:12px;color:var(--txm)">2月28日</div>
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <button class="btn-sm" onclick="event.stopPropagation()">查看数据</button>
+                            <span class="expand-chevron">▾</span>
+                        </div>
+                    </div>
+                    <div class="tr-expand">
+                        <div class="expand-actions">
+                            <div class="expand-actions-left">
+                                <span style="font-size:13px;font-weight:600;color:var(--tx2)">40 篇全部发布完成 · 均值阅读量
+                                    2,340</span>
+                            </div>
+                            <div class="expand-actions-right">
+                                <button class="btn-sm">📊 查看数据看板</button>
+                                <button class="btn-sm">📦 归档导出</button>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+                            <div
+                                style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center">
+                                <div style="font-size:22px;font-weight:700;color:var(--p)">2,340</div>
+                                <div style="font-size:11px;color:var(--txm);margin-top:2px">均值阅读量</div>
+                            </div>
+                            <div
+                                style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center">
+                                <div style="font-size:22px;font-weight:700;color:var(--gr)">186</div>
+                                <div style="font-size:11px;color:var(--txm);margin-top:2px">收藏</div>
+                            </div>
+                            <div
+                                style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center">
+                                <div style="font-size:22px;font-weight:700;color:var(--or)">94</div>
+                                <div style="font-size:11px;color:var(--txm);margin-top:2px">评论</div>
+                            </div>
+                            <div
+                                style="background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center">
+                                <div style="font-size:22px;font-weight:700;color:#6D28D9">23</div>
+                                <div style="font-size:11px;color:var(--txm);margin-top:2px">带来私信</div>
+                            </div>
+                        </div>
+                        <div class="content-grid">
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#FFE4E9,#FFF0F0)">👗<div
+                                        class="mc-status mcs-pub">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">早春穿搭公式：三件单品搞定一周</div>
+                                    <div class="mc-foot"><span>@小灯发芽</span><span style="color:#6D28D9">已发布</span></div>
+                                </div>
+                            </div>
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#E8D9FC,#F2EFFE)">👒<div
+                                        class="mc-status mcs-pub">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">法式慵懒风 OOTD · 温柔不踩雷</div>
+                                    <div class="mc-foot"><span>@诗意宇宙</span><span style="color:#6D28D9">已发布</span></div>
+                                </div>
+                            </div>
+                            <div class="mc">
+                                <div class="mc-thumb" style="background:linear-gradient(135deg,#C8F0EE,#E6F7F7)">🧥<div
+                                        class="mc-status mcs-pub">✓</div>
+                                </div>
+                                <div class="mc-body">
+                                    <div class="mc-title">显瘦显高的穿搭技巧你都学会了吗</div>
+                                    <div class="mc-foot"><span>@颜色研究所</span><span style="color:#6D28D9">已发布</span></div>
+                                </div>
+                            </div>
+                            <div class="mc-more" onclick="openFcModal('2月日常穿搭系列', 40)">
+                                <div class="mc-more-num">+37</div>
+                                <div class="mc-more-label">查看全部内容</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGINATION -->
+            <div
+                style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-size:13px;color:var(--txm)">
+                <div>共 47 条任务</div>
+                <div style="display:flex;gap:6px">
+                    <button class="btn-sm">上一页</button>
+                    <button class="btn-sm on"
+                        style="background:var(--pl);color:var(--p);border-color:var(--pm)">1</button>
+                    <button class="btn-sm">2</button>
+                    <button class="btn-sm">3</button>
+                    <button class="btn-sm">下一页</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ── ROW TOGGLE & FILTER ──
+        function toggleRow(id) {
+            document.getElementById(id).classList.toggle('expanded');
+        }
+        function setFilter(el, group) {
+            el.closest('.filter-section').querySelectorAll('.ft').forEach(f => f.classList.remove('on'));
+            el.classList.add('on');
+        }
+
+        // ── MOCK CONTENT DATA ──
+        const contents = [
+            { id: 1, emoji: '🧴', bg: 'linear-gradient(135deg,#FFE4E9,#FFF0F0)', title: '护肤秘籍｜敏感肌春日护肤攻略', body: '春天来了，敏感肌最头疼的就是换季泛红和脱皮问题。今天给大家分享一套实测有效的护肤方案，从洁面到防晒，每一步都很重要！\n\n🌸 第一步：温和洁面\n推荐氨基酸类洁面，避免皂基配方。我最近在用的这款泡沫细腻，洗完不紧绷……\n\n✨ 第二步：修复精华\n重点推荐含积雪草或神经酰胺成分的精华，帮助修复皮肤屏障。\n\n💊 第三步：锁水保湿\n薄涂一层保湿霜，配合喷雾使用效果翻倍！', account: '@小灯发芽ing', st: 'pub', stLabel: '已发布', platform: '小红书', flag: null },
+            { id: 2, emoji: '💊', bg: 'linear-gradient(135deg,#E8D9FC,#F2EFFE)', title: '玻尿酸真的有用吗？皮肤科医生来解答', body: '最近很多粉丝问我玻尿酸到底有没有用，今天请到了一位皮肤科医生朋友来解答！\n\n答案是：有用，但要选对分子量。\n\n小分子玻尿酸可以渗透到皮肤深层补水；大分子玻尿酸则主要在表皮形成保护膜。日常护肤推荐选含有多重分子量的产品，兼顾表层和深层补水。', account: '@诗意宇宙', st: 'ok', stLabel: '就绪', platform: '小红书', flag: null },
+            { id: 3, emoji: '🌸', bg: 'linear-gradient(135deg,#C8F0EE,#E6F7F7)', title: '春天换季肌肤问题终极解决方案', body: '换季皮肤总是乱？这篇攻略帮你搞定！\n\n常见问题：泛红、脱皮、出油增加、毛孔粗大\n\n解决思路：先修复屏障，再做控油，最后做防晒。很多人做错了顺序就会越护越糟……', account: '@颜色研究所', st: 'ok', stLabel: '就绪', platform: '小红书', flag: null },
+            { id: 4, emoji: '✨', bg: 'linear-gradient(135deg,#FEF3C7,#FFF7ED)', title: '精华液选购指南：这 5 款你一定看过', body: '精华这么多，怎么选？今天做了个横评让你秒懂！\n\n测评维度：成分、质地、吸收速度、实际效果、性价比\n\n测评结论：某平价国货表现出色，性价比完胜大牌……', account: '@粉底研究员', st: 'rev', stLabel: '待审核', platform: '小红书', flag: 'AI 检测：内容含有产品对比及价格暗示，建议核实品牌信息准确后再发布。' },
+            { id: 5, emoji: '🧖', bg: 'linear-gradient(135deg,#D1FAE5,#ECFDF5)', title: '周末护肤 SPA 感觉，在家也能做到', body: '不用去美容院，在家也能做出 SPA 级别的护肤体验！\n\n准备：蒸脸器、面膜、按摩乳\n\n步骤：\n1. 蒸脸 5 分钟软化毛孔\n2. 去角质（1-2周一次）\n3. 敷面膜 15 分钟\n4. 按摩促吸收', account: '@小灯发芽ing', st: 'ok', stLabel: '就绪', platform: '小红书', flag: null },
+            { id: 6, emoji: '🧴', bg: 'linear-gradient(135deg,#EEF2FF,#E0E7FF)', title: '早C晚A护肤法则，你真的做对了吗？', body: '早上用维C，晚上用维A，已经成了护肤圈的共识。但很多人根本没搞清楚为什么这样做！\n\n维C的作用：抗氧化、提亮、防晒辅助\n维A的作用：促进细胞更新、抗老、改善毛孔', account: '@颜色研究所', st: 'ok', stLabel: '就绪', platform: '小红书', flag: null },
+            { id: 7, emoji: '💐', bg: 'linear-gradient(135deg,#FCE7F3,#FDF2F8)', title: '素颜霜测评：擦完真的像素颜吗？', body: '市面上的素颜霜鱼龙混杂，有些根本就是带了遮瑕效果的BB霜！今天帮你分辨真假素颜霜……', account: '@粉底研究员', st: 'rev', stLabel: '待审核', platform: '小红书', flag: 'AI 检测：涉及"遮瑕"相关功效对比描述，请确认是否符合平台规则。' },
+            { id: 8, emoji: '🌟', bg: 'linear-gradient(135deg,#FFFBEB,#FEF3C7)', title: '油皮春夏护肤指南，清爽不假滑', body: '油皮人夏天最苦，护肤做完没一小时又出油！今天总结了油皮护肤最重要的3条原则……', account: '@诗意宇宙', st: 'ok', stLabel: '就绪', platform: '小红书', flag: null },
+        ];
+
+        const stBadgeMap = { ok: 'fc-ok', rev: 'fc-rev', pub: 'fc-pub', fail: 'fc-fail' };
+
+        // ── DRAWER state ──
+        let currentDrawerList = contents;
+        let currentDrawerIdx = 0;
+
+        function openDrawer(id, list) {
+            if (list) currentDrawerList = list;
+            currentDrawerIdx = currentDrawerList.findIndex(c => c.id === id);
+            if (currentDrawerIdx === -1) { currentDrawerList = contents; currentDrawerIdx = contents.findIndex(c => c.id === id); }
+            renderDrawer();
+            document.getElementById('drawerOverlay').classList.add('show');
+        }
+        function renderDrawer() {
+            const c = currentDrawerList[currentDrawerIdx];
+            const total = currentDrawerList.length;
+            const hasPrev = currentDrawerIdx > 0, hasNext = currentDrawerIdx < total - 1;
+            document.getElementById('drawerTitle').innerText = c.title;
+            document.getElementById('drawerMeta').innerHTML = `<span class="pt xhs">${c.platform}</span>&nbsp;&nbsp;${c.account}`;
+            document.getElementById('drawerNav').innerHTML =
+                `<button class="btn-sm" onclick="drawerStep(-1)" ${hasPrev ? '' : 'disabled style="opacity:.35;cursor:default"'}>← 上一篇</button>
+                 <span style="font-size:12px;color:var(--txm)">${currentDrawerIdx + 1} / ${total}</span>
+                 <button class="btn-sm" onclick="drawerStep(1)" ${hasNext ? '' : 'disabled style="opacity:.35;cursor:default"'}>下一篇 →</button>`;
+            const flagHtml = c.flag ? `<div class="ai-flag"><span>⚠️</span><div><b style="display:block;margin-bottom:3px">AI 预审提醒</b>${c.flag}</div></div>` : '';
+            const stColors = { ok: 'var(--gr)', rev: 'var(--or)', pub: '#6D28D9', fail: 'var(--rd)' };
+            const approveLabel = c.st === 'rev' ? '✓ 人工审核通过 · 加入队列' : (c.st === 'ok' ? '🚀 加入发布队列' : '');
+            document.getElementById('drawerBody').innerHTML = `
+              <div class="d-img" style="background:${c.bg}">${c.emoji}</div>
+              <div class="d-label">标题</div>
+              <div style="font-size:14.5px;font-weight:700;line-height:1.4">${c.title}</div>
+              <div class="d-label">正文</div>
+              <div class="d-text">${c.body.replace(/\n/g, '<br>')}</div>
+              ${flagHtml}
+              <div class="d-label">账号 / 平台</div>
+              <div style="font-size:13px;display:flex;align-items:center;gap:8px">${c.account} <span class="pt xhs">${c.platform}</span> <span style="color:${stColors[c.st]};font-size:12px">${c.stLabel}</span></div>`;
+            const btn = document.getElementById('drawerApproveBtn');
+            btn.style.display = c.st === 'pub' ? 'none' : 'block';
+            if (approveLabel) btn.innerText = approveLabel;
+        }
+        function drawerStep(dir) {
+            const next = currentDrawerIdx + dir;
+            if (next >= 0 && next < currentDrawerList.length) { currentDrawerIdx = next; renderDrawer(); }
+        }
+        function closeDrawerDirect() { document.getElementById('drawerOverlay').classList.remove('show'); }
+        document.addEventListener('keydown', e => {
+            const dOpen = document.getElementById('drawerOverlay').classList.contains('show');
+            if (e.key === 'Escape') { if (dOpen) closeDrawerDirect(); else closeFcModal(); }
+            if (dOpen && e.key === 'ArrowRight') drawerStep(1);
+            if (dOpen && e.key === 'ArrowLeft') drawerStep(-1);
+        });
+
+        // ── FULL CONTENT MODAL ──
+        let fcFilter = 'all', fcCurrentList = [];
+        function openFcModal(taskName, count) {
+            document.getElementById('fcTitle').innerText = taskName;
+            document.getElementById('fcSubtitle').innerText = `共 ${count} 篇内容`;
+            fcFilter = 'all';
+            document.querySelectorAll('.fc-filters .ft').forEach((f, i) => f.classList.toggle('on', i === 0));
+            renderFcGrid();
+            document.getElementById('fcOverlay').classList.add('show');
+        }
+        function closeFcModal() { document.getElementById('fcOverlay').classList.remove('show'); }
+        function reopenFcModal() { closeDrawerDirect(); document.getElementById('fcOverlay').classList.add('show'); }
+        function setFcFilter(el, f) {
+            el.parentElement.querySelectorAll('.ft').forEach(x => x.classList.remove('on'));
+            el.classList.add('on'); fcFilter = f; renderFcGrid();
+        }
+        function renderFcGrid() {
+            fcCurrentList = fcFilter === 'all' ? contents : contents.filter(c => c.st === fcFilter);
+            document.getElementById('fcGrid').innerHTML = fcCurrentList.map(c => `
+              <div class="fc-card" onclick="closeFcModal();openDrawer(${c.id}, fcCurrentList)">
+                <div class="fc-thumb" style="background:${c.bg}">${c.emoji}</div>
+                <div class="fc-card-body">
+                  <div class="fc-title">${c.title}</div>
+                  <div class="fc-meta"><span>${c.account}</span><span class="fc-badge ${stBadgeMap[c.st]}">${c.stLabel}</span></div>
+                </div>
+              </div>`).join('') || '<div style="color:var(--txm);font-size:13px;padding:20px">该状态下暂无内容</div>';
+        }
+        document.getElementById('fcOverlay').addEventListener('click', e => { if (e.target === document.getElementById('fcOverlay')) closeFcModal(); });
+        document.getElementById('drawerOverlay').addEventListener('click', e => { if (e.target === document.getElementById('drawerOverlay')) closeDrawerDirect(); });
+
+    </script>
+
+    <!-- ── CONTENT PREVIEW DRAWER ── -->
+    <div class="drawer-overlay" id="drawerOverlay">
+        <div class="drawer">
+            <div class="drawer-head">
+                <div class="drawer-head-info">
+                    <div class="drawer-head-title" id="drawerTitle">内容预览</div>
+                    <div style="font-size:12px;color:var(--txm);margin-top:3px" id="drawerMeta"></div>
+                </div>
+                <button class="x-btn" onclick="closeDrawerDirect()">✕</button>
+            </div>
+            <div class="drawer-body" id="drawerBody"></div>
+            <div style="padding:10px 22px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:8px;background:#f8f9fb"
+                id="drawerNav"></div>
+            <div class="drawer-footer">
+                <button class="btn-g" onclick="reopenFcModal()">⬅ 返回全览</button>
+                <button class="btn-g" style="color:var(--or);border-color:var(--or)">✏️ 编辑内容</button>
+                <button class="btn-p" id="drawerApproveBtn" style="margin-left:auto">✓ 加入发布队列</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FULL CONTENT MODAL ── -->
+    <div class="fc-overlay" id="fcOverlay">
+        <div class="fc-modal">
+            <div class="fc-head">
+                <div>
+                    <div class="fc-head-title" id="fcTitle">批次内容全览</div>
+                    <div style="font-size:12px;color:var(--txm);margin-top:2px" id="fcSubtitle"></div>
+                </div>
+                <button class="x-btn" onclick="closeFcModal()">✕</button>
+            </div>
+            <div class="fc-body">
+                <div class="fc-filters">
+                    <div class="ft on" onclick="setFcFilter(this,'all')">全部</div>
+                    <div class="ft" onclick="setFcFilter(this,'ok')">就绪</div>
+                    <div class="ft" onclick="setFcFilter(this,'rev')">待审核</div>
+                    <div class="ft" onclick="setFcFilter(this,'pub')">已发布</div>
+                    <div class="ft" onclick="setFcFilter(this,'fail')">失败</div>
+                </div>
+                <div class="fc-grid" id="fcGrid"></div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

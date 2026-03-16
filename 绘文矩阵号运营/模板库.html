@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>模板库 - 矩阵号运营</title>
+  <link rel="stylesheet" href="design-tokens.css">
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .sb {
+      width: var(--sidebar-width);
+      background: var(--color-bg-card);
+      border-right: 1px solid var(--color-border);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+    }
+    .sb-header { padding: var(--spacing-4) var(--spacing-4) var(--spacing-3); border-bottom: 1px solid var(--color-border) }
+    .sb-back {
+      display: flex; align-items: center; gap: var(--spacing-2);
+      font: var(--font-body-s); color: var(--color-text-3); cursor: pointer;
+      margin-bottom: var(--spacing-3); transition: color .12s;
+    }
+    .sb-back:hover { color: var(--color-brand) }
+    .sb-brand { display: flex; align-items: center; gap: var(--spacing-3) }
+    .sb-brand-ic {
+      width: 32px; height: 32px;
+      background: var(--grad); border-radius: var(--radius-l);
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .sb-brand-name { font: var(--font-title-s); font-weight: 700; line-height: 1.2; color: var(--color-text-1) }
+    .sb-brand-sub { font: var(--font-body-s); color: var(--color-text-3); margin-top: 1px }
+    .sb-nav { padding: var(--spacing-3); flex: 1; overflow-y: auto }
+    .nav-group { margin-bottom: var(--spacing-2) }
+    .nav-group-label {
+      font: var(--font-body-s); color: var(--color-text-3);
+      padding: var(--spacing-2) var(--spacing-3) var(--spacing-1); letter-spacing: .04em; font-weight: 500;
+      text-transform: uppercase;
+    }
+    .ni {
+      display: flex; align-items: center; gap: var(--spacing-3);
+      padding: var(--spacing-2) var(--spacing-3); border-radius: var(--radius-m);
+      color: var(--color-text-2); cursor: pointer; margin-bottom: 1px;
+      font: var(--font-body-m); transition: all .12s; position: relative;
+      text-decoration: none;
+    }
+    .ni:hover { background: var(--color-bg); color: var(--color-text-1) }
+    .ni.on { background: var(--color-brand-light); color: var(--color-brand); font-weight: 600 }
+    .ni.on::before {
+      content: ''; position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 3px; height: 18px;
+      background: var(--color-brand); border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    }
+    .nic { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0 }
+    .nbadge {
+      margin-left: auto; background: var(--color-danger); color: var(--color-text-inv);
+      font: var(--font-body-s); padding: 1px 5px; border-radius: var(--radius-full); font-weight: 600;
+    }
+    .nbadge.or { background: var(--color-warning) }
+    .nbadge.gr { background: var(--color-success) }
+    .sb-footer { padding: var(--spacing-3) var(--spacing-4); border-top: 1px solid var(--color-border) }
+    .sf-account {
+      display: flex; align-items: center; gap: var(--spacing-3);
+      padding: var(--spacing-2) var(--spacing-3); border-radius: var(--radius-m); cursor: pointer;
+      transition: background .12s;
+    }
+    .sf-av {
+      width: 28px; height: 28px; border-radius: var(--radius-full);
+      background: var(--grad);
+      display: flex; align-items: center; justify-content: center;
+      font: var(--font-body-s); font-weight: 700; color: var(--color-brand);
+    }
+    .sf-name { font: var(--font-body-m); font-weight: 500; flex: 1; color: var(--color-text-1) }
+    .sf-plan {
+      font: var(--font-body-s); color: var(--color-brand); background: var(--color-brand-light);
+      padding: 1px 6px; border-radius: var(--radius-full); font-weight: 600;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .main { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; min-height: 100vh }
+    .topbar {
+      height: 56px; background: var(--color-bg-card); border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 var(--spacing-7); position: sticky; top: 0; z-index: 5;
+    }
+    .tb-breadcrumb { display: flex; align-items: center; gap: var(--spacing-2); font: var(--font-body-m); color: var(--color-text-2) }
+    .tb-breadcrumb span { cursor: pointer }
+    .tb-breadcrumb span:hover { color: var(--color-brand) }
+    .tb-breadcrumb .cur { color: var(--color-text-1); font-weight: 600; cursor: default }
+    .content { padding: var(--spacing-6) var(--spacing-7); flex: 1 }
+
+    .btn-p {
+      background: var(--color-brand);
+      color: var(--color-text-inv);
+      border: none;
+      padding: var(--spacing-btn-v) var(--spacing-4);
+      border-radius: var(--radius-s);
+      font: var(--font-label);
+      cursor: pointer;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-2);
+    }
+
+    .btn-p:hover {
+      background: var(--color-brand-hover);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .btn-p:active {
+      background: var(--color-brand-pressed);
+    }
+
+    .btn-g {
+      background: var(--color-bg-card);
+      color: var(--color-text-1);
+      border: 1px solid var(--color-border);
+      padding: var(--spacing-btn-v) var(--spacing-4);
+      border-radius: var(--radius-s);
+      font: var(--font-label);
+      cursor: pointer;
+      transition: all .12s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-2);
+    }
+
+    .btn-g:hover {
+      border-color: var(--color-brand-mid);
+      color: var(--color-brand);
+      background: var(--color-brand-light);
+    }
+
+    .btn-danger {
+      background: var(--color-bg-card);
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger-light);
+      padding: var(--spacing-2) var(--spacing-3);
+      border-radius: var(--radius-s);
+      font: var(--font-body-m);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .btn-danger:hover {
+      background: var(--color-danger-light);
+      border-color: var(--color-danger);
+    }
+
+    /* ── PAGE TABS ── */
+    .page-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+    }
+    .page-tab {
+      padding: 8px 20px;
+      font-size: 13px; font-weight: 500;
+      color: var(--tx2); cursor: pointer;
+      border-radius: 8px;
+      transition: all .15s;
+      display: flex; align-items: center; gap: 6px;
+      border: 1px solid transparent;
+    }
+    .page-tab:hover { background: var(--bg); color: var(--tx1) }
+    .page-tab.on {
+      background: var(--pl); color: var(--p); font-weight: 600;
+      border-color: var(--pm);
+    }
+    .page-tab-count {
+      font: var(--font-body-s); background: var(--pm); color: var(--p);
+      padding: 1px 7px; border-radius: var(--radius-full); font-weight: 700;
+    }
+    .page-tab.on .page-tab-count { background: var(--p); color: #fff }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .search-wrap { position: relative; flex: 0 0 220px }
+    .search-wrap input {
+      width: 100%; padding: 8px 12px 8px 34px;
+      border: 1px solid var(--bd); border-radius: 8px;
+      font-size: 13px; font-family: inherit; background: var(--wh);
+      transition: border-color .12s; color: var(--tx1);
+    }
+    .search-wrap input:focus { outline: none; border-color: var(--p) }
+    .search-wrap::before {
+      content: '🔍'; position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%); font-size: 13px; pointer-events: none;
+    }
+    .filter-select {
+      padding: 8px 28px 8px 12px;
+      border: 1px solid var(--bd); border-radius: 8px;
+      font-size: 13px; font-family: inherit; background: var(--wh);
+      color: var(--tx1); cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A0A8B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      transition: border-color .12s;
+    }
+    .filter-select:focus { outline: none; border-color: var(--p) }
+
+    /* ── RESULT COUNT ── */
+    .result-count { font-size: 12px; color: var(--txm); margin-bottom: 16px }
+    .result-count b { color: var(--tx1); font-weight: 600 }
+
+    /* ── TEMPLATE GRID ── */
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .template-grid.text-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    /* ── IMAGE TEMPLATE CARD ── */
+    .tpl-card {
+      background: var(--wh);
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all .2s;
+      position: relative;
+    }
+    .tpl-card:hover {
+      border-color: var(--pm);
+      box-shadow: 0 4px 16px rgba(124, 92, 252, 0.10);
+      transform: translateY(-2px);
+    }
+    .tpl-card:hover .tpl-actions { opacity: 1 }
+
+    /* Multi-image strip — fixed height so all cards are same size */
+    .tpl-img-strip {
+      display: flex;
+      height: 160px;
+      gap: 3px;
+      padding: 10px 10px 0;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .tpl-thumb {
+      flex: 1;
+      min-width: 0;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--bd);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--txm);
+    }
+    .tpl-thumb img { width: 100%; height: 100%; object-fit: cover }
+    .tpl-thumb-more {
+      flex: 0 0 52px;
+      height: 100%;
+      background: rgba(124,92,252,.12);
+      color: var(--p);
+      font-size: 12px; font-weight: 700;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .tpl-card-body { padding: 12px }
+    .tpl-card-name {
+      font-size: 13px; font-weight: 600; color: var(--tx1);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+    .tpl-card-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      font: var(--font-body-s); color: var(--txm);
+    }
+    .tpl-card-count {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: var(--pl); color: var(--p);
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 5px;
+    }
+
+    /* Hover actions */
+    .tpl-actions {
+      position: absolute; top: 8px; right: 8px;
+      display: flex; gap: 5px;
+      opacity: 0; transition: opacity .15s;
+    }
+    .tpl-action-btn {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(4px);
+      border: 1px solid var(--bd);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 13px;
+      transition: all .12s;
+    }
+    .tpl-action-btn:hover { border-color: var(--p); background: var(--pl) }
+    .tpl-action-btn.del:hover { border-color: var(--rd); background: var(--rdl) }
+
+    /* ── TEXT TEMPLATE CARD ── */
+    .tpl-text-card {
+      background: var(--wh);
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all .2s;
+      position: relative;
+      cursor: pointer;
+    }
+    .tpl-text-card:hover {
+      border-color: var(--pm);
+      box-shadow: 0 4px 16px rgba(124, 92, 252, 0.10);
+      transform: translateY(-2px);
+    }
+    .tpl-text-card:hover .tpl-actions { opacity: 1 }
+    .tpl-text-preview {
+      font-size: 12px; line-height: 1.7; color: var(--tx2);
+      display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4;
+      -webkit-box-orient: vertical; overflow: hidden;
+      background: var(--bg); border-radius: 8px;
+      padding: 10px 12px; margin-bottom: 12px;
+      white-space: pre-wrap;
+    }
+    .tpl-text-name {
+      font-size: 13px; font-weight: 600; color: var(--tx1);
+      margin-bottom: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .tpl-text-meta {
+      font: var(--font-body-s); color: var(--txm);
+    }
+
+    /* ── UPLOAD MODAL ── */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,.4); z-index: 300;
+      display: none; align-items: center; justify-content: center;
+      animation: fadeIn .15s ease;
+    }
+    .modal-overlay.open { display: flex }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+    .modal {
+      background: var(--wh); border-radius: 16px;
+      width: 480px; max-width: calc(100vw - 40px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.15);
+      display: flex; flex-direction: column;
+      max-height: calc(100vh - 80px);
+    }
+    .modal-head {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--bd);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .modal-title { font-size: 15px; font-weight: 700 }
+    .modal-close {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid var(--bd); background: transparent;
+      cursor: pointer; font-size: 16px; display: flex;
+      align-items: center; justify-content: center; color: var(--tx2);
+    }
+    .modal-close:hover { border-color: var(--rd); color: var(--rd) }
+    .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1 }
+    .modal-foot {
+      padding: 14px 24px; border-top: 1px solid var(--bd);
+      display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0;
+    }
+
+    .form-item { margin-bottom: 16px }
+    .form-label {
+      font-size: 12px; font-weight: 600; color: var(--tx2);
+      margin-bottom: 6px; display: block;
+    }
+    .form-label .req { color: var(--rd) }
+    .m-input {
+      width: 100%; padding: 9px 12px;
+      border: 1px solid var(--bd); border-radius: 8px;
+      font-size: 13px; font-family: inherit; color: var(--tx1);
+      transition: border-color .12s;
+    }
+    .m-input:focus { outline: none; border-color: var(--p) }
+
+    .upload-zone {
+      border: 1.5px dashed var(--bd); border-radius: 10px;
+      padding: 28px 20px; text-align: center; cursor: pointer;
+      transition: border-color .15s; background: var(--bg);
+    }
+    .upload-zone:hover { border-color: var(--p); background: var(--pl) }
+    .upload-zone-icon { font-size: 28px; margin-bottom: 8px }
+    .upload-zone-title { font-size: 13px; font-weight: 600; margin-bottom: 4px }
+    .upload-zone-sub { font-size: 12px; color: var(--txm) }
+
+    /* Uploaded file pills */
+    .file-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px }
+    .file-pill {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--pl); color: var(--p);
+      font: var(--font-body-s); font-weight: 500;
+      padding: 4px 10px; border-radius: var(--radius-full);
+    }
+    .file-pill-remove {
+      cursor: pointer; font-size: 13px; line-height: 1;
+      margin-left: 2px; color: var(--pm);
+    }
+    .file-pill-remove:hover { color: var(--rd) }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--tx2) }
+    .empty-state .ic { font-size: 40px; margin-bottom: 12px }
+    .empty-state .title { font-size: 15px; font-weight: 600; margin-bottom: 6px }
+    .empty-state .sub { font-size: 13px; color: var(--txm) }
+
+    /* ── RENAME INLINE ── */
+    .rename-input {
+      font-size: 13px; font-weight: 600;
+      border: 1.5px solid var(--p); border-radius: 6px;
+      padding: 2px 6px; width: 100%; font-family: inherit;
+      color: var(--tx1); background: var(--pl);
+    }
+    .rename-input:focus { outline: none }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sb">
+  <div class="sb-header">
+    <div class="sb-back" onclick="history.back()">← 返回讯飞绘文</div>
+    <div class="sb-brand">
+      <div class="sb-brand-ic">⚡</div>
+      <div>
+        <div class="sb-brand-name">矩阵号运营</div>
+        <div class="sb-brand-sub">47 个账号 · Pro 版</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-group">
+      <div class="ni" onclick="location.href='矩阵号运营_landing_page.html'"><span class="nic">🏠</span>工作台</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">内容生产</div>
+      <div class="ni" onclick="location.href='批量任务_全量页.html'"><span class="nic">⚡</span>批量任务<span class="nbadge or">5</span></div>
+      <div class="ni"><span class="nic">✨</span>Skill 广场</div>
+      <div class="ni" onclick="location.href='内容库.html'"><span class="nic">🗂️</span>内容库<span class="nbadge gr">347</span></div>
+      <div class="ni on"><span class="nic">🗃️</span>模板库</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">账号管理</div>
+      <div class="ni"><span class="nic">👥</span>账号列表<span class="nbadge" style="background:var(--rd)">3</span></div>
+      <div class="ni"><span class="nic">🗂️</span>分组管理</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">互动与数据</div>
+      <div class="ni"><span class="nic">💬</span>评论与私信<span class="nbadge">12</span></div>
+      <div class="ni"><span class="nic">📈</span>数据看板</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">设置</div>
+      <div class="ni"><span class="nic">⚙️</span>审核规则</div>
+      <div class="ni"><span class="nic">🔔</span>通知设置</div>
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div class="sf-account">
+      <div class="sf-av">呦</div>
+      <div class="sf-name">呦呦</div>
+      <div class="sf-plan">Pro</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+  <div class="topbar">
+    <div class="tb-breadcrumb">
+      <span onclick="location.href='矩阵号运营_landing_page.html'">工作台</span>
+      <span style="color:var(--bd)">›</span>
+      <span class="cur">模板库</span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-p" onclick="openUploadModal()">+ 上传模板</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- PAGE TABS -->
+    <div class="page-tabs">
+      <div class="page-tab on" id="tab-image" onclick="switchTab('image')">
+        图片模板
+        <span class="page-tab-count" id="count-image">8</span>
+      </div>
+      <div class="page-tab" id="tab-text" onclick="switchTab('text')">
+        文字模板
+        <span class="page-tab-count" id="count-text">5</span>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="搜索模板名称…" oninput="handleSearch(this.value)">
+      </div>
+      <select class="filter-select" id="sortSelect" onchange="handleSort(this.value)">
+        <option value="recent">最近上传</option>
+        <option value="name">名称排序</option>
+      </select>
+    </div>
+
+    <div class="result-count" id="resultCount"></div>
+
+    <!-- GRID CONTAINER -->
+    <div class="template-grid" id="templateGrid"></div>
+
+  </div>
+</main>
+
+<!-- ── UPLOAD MODAL ── -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="uploadModalTitle">上传图片模板</div>
+      <button class="modal-close" onclick="closeUploadModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-item">
+        <label class="form-label">模板名称 <span class="req">*</span></label>
+        <input class="m-input" id="uploadName" placeholder="如：品牌粉底液主图系列、618大促通用版式…">
+      </div>
+      <div class="form-item" id="imageUploadSection">
+        <label class="form-label">上传图片 <span class="req">*</span> <span style="font-weight:400;color:var(--txm)">（多选或 ZIP，整批视为一套）</span></label>
+        <div class="upload-zone" onclick="simulateFileSelect()">
+          <div class="upload-zone-icon">🖼️</div>
+          <div class="upload-zone-title">点击选择图片文件</div>
+          <div class="upload-zone-sub">支持 PNG / JPG 多选，或上传 ZIP 压缩包</div>
+        </div>
+        <div class="file-pills" id="filePills"></div>
+      </div>
+      <div class="form-item" id="textUploadSection" style="display:none">
+        <label class="form-label">模板正文 <span class="req">*</span></label>
+        <textarea class="m-input" id="textContent" rows="8"
+          style="resize:vertical;line-height:1.7"
+          placeholder="粘贴正文结构参考，例如：&#10;&#10;开头：制造共鸣场景&#10;中间：3 个产品卖点逐一展开&#10;结尾：呼吁行动 + 话题标签&#10;&#10;#好物推荐 #小红书笔记"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-g" onclick="closeUploadModal()">取消</button>
+      <button class="btn-p" onclick="confirmUpload()">保存模板</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── DATA ── */
+  let currentTab = 'image';
+  let searchQuery = '';
+
+  const imageTemplates = [
+    {
+      id: 'it1',
+      name: '品牌粉底液主图系列',
+      images: [
+        'https://picsum.photos/seed/t1a/150/200',
+        'https://picsum.photos/seed/t1b/150/200',
+        'https://picsum.photos/seed/t1c/150/200',
+        'https://picsum.photos/seed/t1d/150/200',
+        'https://picsum.photos/seed/t1e/150/200',
+        'https://picsum.photos/seed/t1f/150/200',
+      ],
+      uploadedAt: '2025-02-18',
+    },
+    {
+      id: 'it2',
+      name: '618 大促通用竖版',
+      images: [
+        'https://picsum.photos/seed/t2a/150/200',
+        'https://picsum.photos/seed/t2b/150/200',
+        'https://picsum.photos/seed/t2c/150/200',
+      ],
+      uploadedAt: '2025-02-10',
+    },
+    {
+      id: 'it3',
+      name: '学习机产品详情页',
+      images: [
+        'https://picsum.photos/seed/t3a/150/200',
+        'https://picsum.photos/seed/t3b/150/200',
+        'https://picsum.photos/seed/t3c/150/200',
+        'https://picsum.photos/seed/t3d/150/200',
+        'https://picsum.photos/seed/t3e/150/200',
+        'https://picsum.photos/seed/t3f/150/200',
+        'https://picsum.photos/seed/t3g/150/200',
+        'https://picsum.photos/seed/t3h/150/200',
+      ],
+      uploadedAt: '2025-01-28',
+    },
+    {
+      id: 'it4',
+      name: '护肤日常种草版式',
+      images: [
+        'https://picsum.photos/seed/t4a/150/200',
+        'https://picsum.photos/seed/t4b/150/200',
+      ],
+      uploadedAt: '2025-01-15',
+    },
+    {
+      id: 'it5',
+      name: '宠物用品清单卡片',
+      images: [
+        'https://picsum.photos/seed/t5a/150/200',
+        'https://picsum.photos/seed/t5b/150/200',
+        'https://picsum.photos/seed/t5c/150/200',
+        'https://picsum.photos/seed/t5d/150/200',
+      ],
+      uploadedAt: '2025-01-05',
+    },
+    {
+      id: 'it6',
+      name: '读书笔记横版图文',
+      images: [
+        'https://picsum.photos/seed/t6a/150/200',
+        'https://picsum.photos/seed/t6b/150/200',
+        'https://picsum.photos/seed/t6c/150/200',
+      ],
+      uploadedAt: '2024-12-20',
+    },
+    {
+      id: 'it7',
+      name: '美食探店方形版',
+      images: [
+        'https://picsum.photos/seed/t7a/150/200',
+        'https://picsum.photos/seed/t7b/150/200',
+        'https://picsum.photos/seed/t7c/150/200',
+        'https://picsum.photos/seed/t7d/150/200',
+        'https://picsum.photos/seed/t7e/150/200',
+      ],
+      uploadedAt: '2024-12-10',
+    },
+    {
+      id: 'it8',
+      name: '汽车新品发布专题',
+      images: [
+        'https://picsum.photos/seed/t8a/150/200',
+      ],
+      uploadedAt: '2024-11-30',
+    },
+  ];
+
+  const textTemplates = [
+    {
+      id: 'tt1',
+      name: '小红书种草通用结构',
+      content: `开头：制造共鸣场景（1-2 句）\n中间：3 个产品卖点逐一展开，搭配使用体验\n结尾：给读者的建议 + 呼吁互动\n\n话题标签：#好物推荐 #XXX测评 #真实使用感受`,
+      uploadedAt: '2025-02-20',
+    },
+    {
+      id: 'tt2',
+      name: '产品评测长文模板',
+      content: `# 开箱\n简短描述外包装与第一印象\n\n# 上手体验\n核心功能的实测过程与感受\n\n# 优缺点总结\n优点：…\n缺点：…\n\n# 适合人群\n推荐给 XXX 类型的用户`,
+      uploadedAt: '2025-01-25',
+    },
+    {
+      id: 'tt3',
+      name: '节气营销文案框架',
+      content: `主题：[节气名] × [品牌/产品]\n\n开篇：节气意境描写（2-3 句）\n转折：自然关联品牌场景\n核心信息：活动/产品亮点 1-2 点\n收尾：情感共鸣句 + 呼吁`,
+      uploadedAt: '2025-01-10',
+    },
+    {
+      id: 'tt4',
+      name: '干货列表型笔记',
+      content: `标题：数字 + 核心关键词（如「7个让你...的方法」）\n\n正文结构：\n1. 小标题（加粗）+ 2-3 行说明\n2. 小标题 + 2-3 行说明\n…（重复 5-8 条）\n\n结尾：总结一句话 + 引导收藏`,
+      uploadedAt: '2024-12-28',
+    },
+    {
+      id: 'tt5',
+      name: '直播带货预热文案',
+      content: `📢 直播预告\n时间：[日期] [时间]\n\n本场亮点：\n✅ 产品 A — 直播价 XX 元\n✅ 产品 B — 限量福袋\n\n记得设置提醒！`,
+      uploadedAt: '2024-12-05',
+    },
+  ];
+
+  /* ── MOCK FILE STATE ── */
+  let pendingFiles = ['品牌主图_01.jpg', '品牌主图_02.jpg', '品牌主图_03.jpg'];
+
+  /* ── RENDER ── */
+  function renderGrid() {
+    const grid = document.getElementById('templateGrid');
+    const countEl = document.getElementById('resultCount');
+    const q = searchQuery.toLowerCase();
+
+    if (currentTab === 'image') {
+      grid.classList.remove('text-grid');
+      let items = imageTemplates.filter(t => t.name.toLowerCase().includes(q));
+      countEl.innerHTML = `共 <b>${items.length}</b> 套图片模板`;
+      grid.innerHTML = items.length
+        ? items.map(renderImageCard).join('')
+        : emptyState('🖼️', '还没有图片模板', '点击右上角「上传模板」，将品牌版式图集保存为一套模板');
+    } else {
+      grid.classList.add('text-grid');
+      let items = textTemplates.filter(t => t.name.toLowerCase().includes(q) || t.content.toLowerCase().includes(q));
+      countEl.innerHTML = `共 <b>${items.length}</b> 个文字模板`;
+      grid.innerHTML = items.length
+        ? items.map(renderTextCard).join('')
+        : emptyState('📝', '还没有文字模板', '点击右上角「上传模板」，将正文结构参考保存为模板');
+    }
+  }
+
+  function renderImageCard(t) {
+    const maxShow = 4;
+    const shown = t.images.slice(0, maxShow);
+    const extra = t.images.length - maxShow;
+
+    const thumbs = shown.map(src =>
+      `<div class="tpl-thumb"><img src="${src}" alt="" loading="lazy"></div>`
+    ).join('');
+    const morePill = extra > 0
+      ? `<div class="tpl-thumb-more">+${extra}</div>`
+      : '';
+
+    return `
+      <div class="tpl-card" id="card-${t.id}">
+        <div class="tpl-actions">
+          <div class="tpl-action-btn" title="重命名" onclick="startRename('${t.id}', event)">✏️</div>
+          <div class="tpl-action-btn del" title="删除" onclick="deleteTemplate('${t.id}', 'image', event)">🗑️</div>
+        </div>
+        <div class="tpl-img-strip">${thumbs}${morePill}</div>
+        <div class="tpl-card-body">
+          <div class="tpl-card-name" id="name-${t.id}">${t.name}</div>
+          <div class="tpl-card-meta">
+            <span class="tpl-card-count">🖼️ 共 ${t.images.length} 张</span>
+            <span>${t.uploadedAt}</span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderTextCard(t) {
+    return `
+      <div class="tpl-text-card" id="card-${t.id}">
+        <div class="tpl-actions">
+          <div class="tpl-action-btn" title="重命名" onclick="startRename('${t.id}', event)">✏️</div>
+          <div class="tpl-action-btn del" title="删除" onclick="deleteTemplate('${t.id}', 'text', event)">🗑️</div>
+        </div>
+        <div class="tpl-text-preview">${t.content}</div>
+        <div class="tpl-text-name" id="name-${t.id}">${t.name}</div>
+        <div class="tpl-text-meta">${t.uploadedAt}</div>
+      </div>`;
+  }
+
+  function emptyState(icon, title, sub) {
+    return `<div class="empty-state" style="grid-column:1/-1">
+      <div class="ic">${icon}</div>
+      <div class="title">${title}</div>
+      <div class="sub">${sub}</div>
+    </div>`;
+  }
+
+  /* ── TABS ── */
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tab-image').classList.toggle('on', tab === 'image');
+    document.getElementById('tab-text').classList.toggle('on', tab === 'text');
+    searchQuery = '';
+    document.getElementById('searchInput').value = '';
+    renderGrid();
+  }
+
+  /* ── SEARCH ── */
+  function handleSearch(val) {
+    searchQuery = val;
+    renderGrid();
+  }
+
+  function handleSort() { renderGrid() }
+
+  /* ── UPLOAD MODAL ── */
+  function openUploadModal() {
+    const isImage = currentTab === 'image';
+    document.getElementById('uploadModalTitle').textContent = isImage ? '上传图片模板' : '新建文字模板';
+    document.getElementById('imageUploadSection').style.display = isImage ? 'block' : 'none';
+    document.getElementById('textUploadSection').style.display = isImage ? 'none' : 'block';
+    document.getElementById('uploadName').value = '';
+    document.getElementById('textContent').value = '';
+    renderFilePills();
+    document.getElementById('uploadModal').classList.add('open');
+  }
+
+  function closeUploadModal() {
+    document.getElementById('uploadModal').classList.remove('open');
+  }
+
+  function simulateFileSelect() {
+    const names = ['品牌主图_01.jpg', '品牌主图_02.jpg', '品牌主图_03.jpg', '品牌主图_04.jpg'];
+    pendingFiles = names.slice(0, 3 + Math.floor(Math.random() * 2));
+    renderFilePills();
+  }
+
+  function renderFilePills() {
+    const container = document.getElementById('filePills');
+    container.innerHTML = pendingFiles.map((f, i) => `
+      <div class="file-pill">
+        ${f}
+        <span class="file-pill-remove" onclick="removeFile(${i})">✕</span>
+      </div>`).join('');
+  }
+
+  function removeFile(idx) {
+    pendingFiles.splice(idx, 1);
+    renderFilePills();
+  }
+
+  function confirmUpload() {
+    const name = document.getElementById('uploadName').value.trim();
+    if (!name) { alert('请填写模板名称'); return; }
+
+    if (currentTab === 'image') {
+      if (pendingFiles.length === 0) { alert('请上传至少一张图片'); return; }
+      const seeds = pendingFiles.map((_, i) => `https://picsum.photos/seed/new${Date.now()}${i}/150/200`);
+      imageTemplates.unshift({ id: 'it' + Date.now(), name, images: seeds, uploadedAt: new Date().toISOString().slice(0,10) });
+      document.getElementById('count-image').textContent = imageTemplates.length;
+    } else {
+      const content = document.getElementById('textContent').value.trim();
+      if (!content) { alert('请填写模板正文'); return; }
+      textTemplates.unshift({ id: 'tt' + Date.now(), name, content, uploadedAt: new Date().toISOString().slice(0,10) });
+      document.getElementById('count-text').textContent = textTemplates.length;
+    }
+
+    closeUploadModal();
+    renderGrid();
+  }
+
+  /* ── RENAME ── */
+  function startRename(id, e) {
+    e.stopPropagation();
+    const nameEl = document.getElementById('name-' + id);
+    const current = nameEl.textContent;
+    nameEl.innerHTML = `<input class="rename-input" value="${current}"
+      onblur="finishRename('${id}', this)"
+      onkeydown="if(event.key==='Enter')this.blur(); if(event.key==='Escape'){this.value='${current}';this.blur()}"
+    >`;
+    nameEl.querySelector('input').focus();
+  }
+
+  function finishRename(id, input) {
+    const val = input.value.trim() || input.defaultValue;
+    const list = currentTab === 'image' ? imageTemplates : textTemplates;
+    const item = list.find(t => t.id === id);
+    if (item) item.name = val;
+    renderGrid();
+  }
+
+  /* ── DELETE ── */
+  function deleteTemplate(id, type, e) {
+    e.stopPropagation();
+    if (!confirm('确认删除此模板？')) return;
+    if (type === 'image') {
+      const idx = imageTemplates.findIndex(t => t.id === id);
+      if (idx > -1) imageTemplates.splice(idx, 1);
+      document.getElementById('count-image').textContent = imageTemplates.length;
+    } else {
+      const idx = textTemplates.findIndex(t => t.id === id);
+      if (idx > -1) textTemplates.splice(idx, 1);
+      document.getElementById('count-text').textContent = textTemplates.length;
+    }
+    renderGrid();
+  }
+
+  /* ── CLOSE MODAL ON OVERLAY CLICK ── */
+  document.getElementById('uploadModal').addEventListener('click', function(e) {
+    if (e.target === this) closeUploadModal();
+  });
+
+  /* ── INIT ── */
+  renderGrid();
+</script>
+</body>
+</html>
